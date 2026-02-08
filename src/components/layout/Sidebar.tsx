@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,22 +18,26 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ElementType;
   badge?: number;
+  roles?: string[]; // If undefined, show to all roles
 }
 
-const navItems: NavItem[] = [
+const allNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "MoU Management", href: "/mou", icon: FileText, badge: 3 },
+  { title: "MoU Management", href: "/mou", icon: FileText, badge: 3, roles: ["admin", "faculty"] },
   { title: "Internships", href: "/internships", icon: Briefcase, badge: 12 },
-  { title: "Research Hub", href: "/research", icon: GraduationCap },
+  { title: "Research Hub", href: "/research", icon: GraduationCap, roles: ["admin", "faculty"] },
   { title: "Alumni Network", href: "/alumni", icon: Users },
   { title: "Events", href: "/events", icon: Calendar, badge: 5 },
-  { title: "Analytics", href: "/analytics", icon: BarChart3 },
+  { title: "Analytics", href: "/analytics", icon: BarChart3, roles: ["admin", "faculty"] },
   { title: "Industry Partners", href: "/partners", icon: Building2 },
   { title: "Settings", href: "/settings", icon: Settings },
 ];
@@ -46,6 +50,33 @@ interface SidebarProps {
 export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { role } = useUserRole();
+  const { toast } = useToast();
+
+  // Filter nav items based on user role
+  const navItems = allNavItems.filter((item) => {
+    if (!item.roles) return true;
+    if (!role) return false;
+    return item.roles.includes(role);
+  });
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Signed out",
+        description: "You have been signed out successfully.",
+      });
+      navigate("/login");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sign out",
+      });
+    }
+  };
 
   return (
     <>
@@ -132,6 +163,7 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
         {/* Footer */}
         <div className="border-t border-sidebar-border p-2">
           <button
+            onClick={handleLogout}
             className={cn(
               "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
             )}

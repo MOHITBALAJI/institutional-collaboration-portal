@@ -1,0 +1,33 @@
+import { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Loader2 } from "lucide-react";
+
+type AppRole = "admin" | "industry_partner" | "faculty" | "student" | "alumni";
+
+interface ProtectedRouteProps {
+  children: ReactNode;
+  allowedRoles?: AppRole[];
+}
+
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+  const { user, role, loading } = useUserRole();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && role && !allowedRoles.includes(role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}

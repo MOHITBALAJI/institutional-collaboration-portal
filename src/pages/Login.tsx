@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { 
   Building2, 
@@ -15,21 +14,108 @@ import {
   GraduationCap,
   Users,
   Briefcase,
-  Shield
+  Shield,
+  Loader2
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const roles = [
-  { id: "admin", label: "College Admin", icon: Shield },
-  { id: "industry", label: "Industry Partner", icon: Building2 },
-  { id: "faculty", label: "Faculty", icon: GraduationCap },
-  { id: "student", label: "Student", icon: Users },
-  { id: "alumni", label: "Alumni", icon: Briefcase },
+  { id: "admin", label: "Admin", icon: Shield, dbRole: "admin" },
+  { id: "industry_partner", label: "Industry", icon: Building2, dbRole: "industry_partner" },
+  { id: "faculty", label: "Faculty", icon: GraduationCap, dbRole: "faculty" },
+  { id: "student", label: "Student", icon: Users, dbRole: "student" },
+  { id: "alumni", label: "Alumni", icon: Briefcase, dbRole: "alumni" },
 ];
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState("admin");
+  const [selectedRole, setSelectedRole] = useState("student");
   const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        // Sign in
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+
+        navigate("/dashboard");
+      } else {
+        // Sign up with role in metadata
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: {
+              full_name: fullName,
+              role: selectedRole,
+            },
+          },
+        });
+
+        if (error) throw error;
+
+        // Update the user role in the database
+        if (data.user) {
+          // The trigger will create default role, but we need to update it
+          const roleValue = selectedRole as "admin" | "alumni" | "faculty" | "industry_partner" | "student";
+          const { error: roleError } = await supabase
+            .from("user_roles")
+            .update({ role: roleValue })
+            .eq("user_id", data.user.id);
+
+          if (roleError) {
+            console.error("Error updating role:", roleError);
+          }
+
+          // Update profile with full name
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .update({ full_name: fullName })
+            .eq("user_id", data.user.id);
+
+          if (profileError) {
+            console.error("Error updating profile:", profileError);
+          }
+        }
+
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account before signing in.",
+        });
+
+        setIsLogin(true);
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: isLogin ? "Sign in failed" : "Sign up failed",
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -98,103 +184,124 @@ export default function Login() {
             </CardDescription>
           </CardHeader>
           
-          <CardContent className="space-y-6">
-            {/* Role Selection */}
-            <div className="space-y-2">
-              <Label>Select Your Role</Label>
-              <div className="grid grid-cols-5 gap-2">
-                {roles.map((role) => (
-                  <button
-                    key={role.id}
-                    onClick={() => setSelectedRole(role.id)}
-                    className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${
-                      selectedRole === role.id
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border hover:border-primary/50 hover:bg-secondary/50"
-                    }`}
-                  >
-                    <role.icon className="h-5 w-5" />
-                    <span className="text-[10px] font-medium text-center leading-tight">
-                      {role.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Form Fields */}
-            <div className="space-y-4">
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Role Selection - Only show for signup */}
               {!isLogin && (
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    variant="glass"
-                    placeholder="Dr. John Doe"
-                  />
+                  <Label>Select Your Role</Label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {roles.map((role) => (
+                      <button
+                        key={role.id}
+                        type="button"
+                        onClick={() => setSelectedRole(role.id)}
+                        className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${
+                          selectedRole === role.id
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                        }`}
+                      >
+                        <role.icon className="h-5 w-5" />
+                        <span className="text-[10px] font-medium text-center leading-tight">
+                          {role.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    variant="glass"
-                    placeholder="you@institution.edu"
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  {isLogin && (
-                    <a href="#" className="text-xs text-primary hover:underline">
-                      Forgot password?
-                    </a>
-                  )}
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    variant="glass"
-                    placeholder="••••••••"
-                    className="pl-9 pr-9"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-            </div>
 
-            {/* Submit Button */}
-            <Link to="/dashboard" className="block">
-              <Button variant="gradient" className="w-full" size="lg">
+              {/* Form Fields */}
+              <div className="space-y-4">
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      variant="glass"
+                      placeholder="Dr. John Doe"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required={!isLogin}
+                    />
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      variant="glass"
+                      placeholder="you@institution.edu"
+                      className="pl-9"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    {isLogin && (
+                      <a href="#" className="text-xs text-primary hover:underline">
+                        Forgot password?
+                      </a>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      variant="glass"
+                      placeholder="••••••••"
+                      className="pl-9 pr-9"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <Button 
+                type="submit" 
+                variant="gradient" 
+                className="w-full" 
+                size="lg"
+                disabled={loading}
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isLogin ? "Sign In" : "Create Account"}
               </Button>
-            </Link>
 
-            {/* Toggle */}
-            <p className="text-center text-sm text-muted-foreground">
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:underline font-medium"
-              >
-                {isLogin ? "Sign Up" : "Sign In"}
-              </button>
-            </p>
+              {/* Toggle */}
+              <p className="text-center text-sm text-muted-foreground">
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                <button
+                  type="button"
+                  onClick={() => setIsLogin(!isLogin)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  {isLogin ? "Sign Up" : "Sign In"}
+                </button>
+              </p>
+            </form>
           </CardContent>
         </Card>
       </div>

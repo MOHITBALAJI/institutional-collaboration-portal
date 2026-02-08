@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
@@ -27,15 +28,78 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/mou" element={<MoUManagement />} />
-          <Route path="/internships" element={<Internships />} />
-          <Route path="/research" element={<ResearchHub />} />
-          <Route path="/alumni" element={<AlumniNetwork />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/partners" element={<IndustryPartners />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mou"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "faculty"]}>
+                <MoUManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/internships"
+            element={
+              <ProtectedRoute>
+                <Internships />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/research"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "faculty"]}>
+                <ResearchHub />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/alumni"
+            element={
+              <ProtectedRoute>
+                <AlumniNetwork />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events"
+            element={
+              <ProtectedRoute>
+                <Events />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "faculty"]}>
+                <Analytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/partners"
+            element={
+              <ProtectedRoute>
+                <IndustryPartners />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
