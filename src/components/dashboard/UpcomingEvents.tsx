@@ -49,10 +49,20 @@ export function UpcomingEvents() {
           .order("start_datetime", { ascending: true })
           .limit(4);
 
-        if (error) throw error;
+        if (error) {
+          // Silently handle missing table (new Supabase DB)
+          if (error.message?.includes("does not exist") || error.code === "42P01") {
+            console.warn("Events table not found — using empty list");
+            setEvents([]);
+            setLoading(false);
+            return;
+          }
+          throw error;
+        }
         setEvents(data || []);
       } catch (error) {
-        console.error("Error fetching events:", error);
+        console.warn("Error fetching events:", error);
+        setEvents([]);
       } finally {
         setLoading(false);
       }

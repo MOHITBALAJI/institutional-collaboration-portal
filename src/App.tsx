@@ -9,12 +9,26 @@ import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import MoUManagement from "@/pages/MoUManagement";
 import Internships from "@/pages/Internships";
-import ResearchHub from "@/pages/ResearchHub";
+
 import AlumniNetwork from "@/pages/AlumniNetwork";
 import Events from "@/pages/Events";
 import Analytics from "@/pages/Analytics";
 import IndustryPartners from "@/pages/IndustryPartners";
 import Settings from "@/pages/Settings";
+import Mentorship from "@/pages/Mentorship";
+
+
+import AuditLog from "@/pages/AuditLog";
+import ProjectBoard from "@/pages/ProjectBoard";
+import PlacementTracker from "@/pages/PlacementTracker";
+import InternshipMatching from "@/pages/InternshipMatching";
+
+import ExportReports from "@/pages/ExportReports";
+import DiscussionForum from "@/pages/DiscussionForum";
+import BulkImport from "@/pages/BulkImport";
+import ApprovalWorkflows from "@/pages/ApprovalWorkflows";
+import SkillAssessment from "@/pages/SkillAssessment";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,23 +61,16 @@ const App = () => (
           <Route
             path="/internships"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student", "admin", "industry_partner"]}>
                 <Internships />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/research"
-            element={
-              <ProtectedRoute allowedRoles={["admin", "faculty"]}>
-                <ResearchHub />
-              </ProtectedRoute>
-            }
-          />
+
           <Route
             path="/alumni"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student", "alumni", "admin"]}>
                 <AlumniNetwork />
               </ProtectedRoute>
             }
@@ -71,7 +78,7 @@ const App = () => (
           <Route
             path="/events"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["student", "faculty", "alumni", "admin", "industry_partner"]}>
                 <Events />
               </ProtectedRoute>
             }
@@ -87,7 +94,7 @@ const App = () => (
           <Route
             path="/partners"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["admin", "faculty"]}>
                 <IndustryPartners />
               </ProtectedRoute>
             }
@@ -95,11 +102,96 @@ const App = () => (
           <Route
             path="/settings"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={["admin", "faculty", "student", "alumni", "industry_partner"]}>
                 <Settings />
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/mentorship"
+            element={
+              <ProtectedRoute allowedRoles={["student", "faculty", "alumni", "admin"]}>
+                <Mentorship />
+              </ProtectedRoute>
+            }
+          />
+
+
+          <Route
+            path="/audit"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AuditLog />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects"
+            element={
+              <ProtectedRoute allowedRoles={["student", "faculty", "admin"]}>
+                <ProjectBoard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/placements"
+            element={
+              <ProtectedRoute allowedRoles={["student", "admin"]}>
+                <PlacementTracker />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/internship-matching"
+            element={
+              <ProtectedRoute allowedRoles={["student", "admin"]}>
+                <InternshipMatching />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "faculty"]}>
+                <ExportReports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/forum"
+            element={
+              <ProtectedRoute allowedRoles={["student", "faculty", "alumni", "admin", "industry_partner"]}>
+                <DiscussionForum />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/import"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <BulkImport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/approvals"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "faculty"]}>
+                <ApprovalWorkflows />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/skill-assessment"
+            element={
+              <ProtectedRoute allowedRoles={["student", "faculty", "admin"]}>
+                <SkillAssessment />
+              </ProtectedRoute>
+            }
+          />
+
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

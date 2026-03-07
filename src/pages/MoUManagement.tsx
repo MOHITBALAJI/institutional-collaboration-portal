@@ -48,16 +48,16 @@ import {
   Building2,
 } from "lucide-react";
 import {
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  BarChart,
+  Bar,
+  Legend,
 } from "recharts";
 
 const mouTrendData = [
@@ -84,8 +84,20 @@ const pieData = [
   { name: "Expired", value: 3, color: "hsl(0, 84%, 60%)" },
 ];
 
+const sampleMoUs: MoU[] = [
+  { id: "m1", title: "Industry-Academia Research Collaboration", partner_id: null, partner_name: "Tata Consultancy Services", description: "Joint research in AI/ML, cloud computing, and cybersecurity. Includes student internships, faculty exchange, and co-authored publications.", objectives: ["Joint Research", "Student Internships", "Faculty Development"], start_date: "2024-01-01", end_date: "2027-01-01", status: "active", document_url: null, key_deliverables: ["5 joint publications", "20 internships/year", "2 patents"], budget: 5000000, assigned_faculty: "Dr. Rajesh Kumar", created_by: null, approved_by: null, approved_at: null, created_at: "2024-01-01T10:00:00Z", updated_at: "2024-01-01T10:00:00Z" },
+  { id: "m2", title: "Centre of Excellence in Data Sciences", partner_id: null, partner_name: "Infosys", description: "Establish a CoE for data science research and training. Industry-relevant curriculum development and certification programs.", objectives: ["CoE Setup", "Curriculum Development", "Certification Programs"], start_date: "2024-06-01", end_date: "2027-06-01", status: "active", document_url: null, key_deliverables: ["Lab infrastructure", "10 courses updated", "500 certifications"], budget: 8000000, assigned_faculty: "Prof. Meena Iyer", created_by: null, approved_by: null, approved_at: null, created_at: "2024-06-01T10:00:00Z", updated_at: "2024-06-01T10:00:00Z" },
+  { id: "m3", title: "Defence Research Partnership", partner_id: null, partner_name: "DRDO", description: "Collaborative research on embedded systems, signal processing, and autonomous systems for defence applications.", objectives: ["Defence R&D", "Prototype Development", "Security Research"], start_date: "2023-04-01", end_date: "2026-04-01", status: "active", document_url: null, key_deliverables: ["3 prototypes", "8 publications", "1 patent filed"], budget: 12000000, assigned_faculty: "Dr. Venkat Rao", created_by: null, approved_by: null, approved_at: null, created_at: "2023-04-01T10:00:00Z", updated_at: "2023-04-01T10:00:00Z" },
+  { id: "m4", title: "Student Exchange & Joint Degree Program", partner_id: null, partner_name: "IIT Madras", description: "Academic collaboration for student exchange, joint supervision of M.Tech/PhD theses, and collaborative workshops.", objectives: ["Student Exchange", "Joint Supervision", "Knowledge Sharing"], start_date: "2025-01-01", end_date: "2028-01-01", status: "active", document_url: null, key_deliverables: ["10 exchanges/year", "5 joint theses", "Annual workshop"], budget: 2000000, assigned_faculty: "Dr. Priya Sharma", created_by: null, approved_by: null, approved_at: null, created_at: "2025-01-01T10:00:00Z", updated_at: "2025-01-01T10:00:00Z" },
+  { id: "m5", title: "Healthcare Innovation Lab", partner_id: null, partner_name: "Apollo Hospitals", description: "Establish a joint innovation lab for healthcare technology — telemedicine, AI diagnostics, and patient data analytics.", objectives: ["Health-Tech R&D", "Clinical Trials", "IP Development"], start_date: "2025-03-01", end_date: "2028-03-01", status: "pending_approval", document_url: null, key_deliverables: ["Lab setup", "2 clinical pilots", "3 publications"], budget: 15000000, assigned_faculty: null, created_by: null, approved_by: null, approved_at: null, created_at: "2025-03-01T10:00:00Z", updated_at: "2025-03-01T10:00:00Z" },
+  { id: "m6", title: "EV Battery Testing Partnership", partner_id: null, partner_name: "Tata Motors", description: "Testing and validation of EV battery technologies. Includes lab equipment sponsorship and placement opportunities.", objectives: ["Battery R&D", "Lab Equipment", "Placements"], start_date: "2025-07-01", end_date: "2027-07-01", status: "draft", document_url: null, key_deliverables: ["Testing reports", "5 placements", "Lab upgrade"], budget: 6000000, assigned_faculty: null, created_by: null, approved_by: null, approved_at: null, created_at: "2025-07-01T10:00:00Z", updated_at: "2025-07-01T10:00:00Z" },
+  { id: "m7", title: "Semiconductor Design Training", partner_id: null, partner_name: "Texas Instruments", description: "Training program for VLSI and semiconductor design. Sponsored lab, industry mentors, and recruitment pipeline.", objectives: ["VLSI Training", "Sponsored Lab", "Recruitment"], start_date: "2022-01-01", end_date: "2025-01-01", status: "expired", document_url: null, key_deliverables: ["200 students trained", "Lab setup", "30 recruited"], budget: 4000000, assigned_faculty: "Dr. Arun Patel", created_by: null, approved_by: null, approved_at: null, created_at: "2022-01-01T10:00:00Z", updated_at: "2025-01-02T10:00:00Z" },
+  { id: "m8", title: "Renewable Energy Research Consortium", partner_id: null, partner_name: "Adani Green Energy", description: "Multi-year research partnership on solar and wind energy optimization, smart grid technology, and energy storage.", objectives: ["Renewable Energy R&D", "Smart Grid", "Energy Storage"], start_date: "2025-06-01", end_date: "2028-06-01", status: "pending_approval", document_url: null, key_deliverables: ["Pilot smart grid", "4 publications", "2 patents"], budget: 20000000, assigned_faculty: null, created_by: null, approved_by: null, approved_at: null, created_at: "2025-06-01T10:00:00Z", updated_at: "2025-06-01T10:00:00Z" },
+];
+
 export default function MoUManagement() {
-  const { mous, loading, createMoU, updateMoU, deleteMoU } = useMoUs();
+  const { mous: dbMous, loading, createMoU, updateMoU, deleteMoU } = useMoUs();
+  const mous = dbMous.length > 0 ? dbMous : sampleMoUs;
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -194,11 +206,13 @@ export default function MoUManagement() {
     { label: "Total MoUs", value: mous.length, icon: FileText, color: "text-primary" },
     { label: "Active", value: mous.filter((m) => m.status === "active").length, icon: CheckCircle, color: "text-success" },
     { label: "Pending Approval", value: mous.filter((m) => m.status === "pending_approval").length, icon: Clock, color: "text-warning" },
-    { label: "Expiring Soon", value: mous.filter((m) => {
-      if (!m.end_date) return false;
-      const days = Math.ceil((new Date(m.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-      return days > 0 && days <= 30;
-    }).length, icon: AlertCircle, color: "text-destructive" },
+    {
+      label: "Expiring Soon", value: mous.filter((m) => {
+        if (!m.end_date) return false;
+        const days = Math.ceil((new Date(m.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        return days > 0 && days <= 30;
+      }).length, icon: AlertCircle, color: "text-destructive"
+    },
   ];
 
   return (
@@ -348,32 +362,16 @@ export default function MoUManagement() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
-                <AreaChart data={mouTrendData}>
-                  <defs>
-                    <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
+                <LineChart data={mouTrendData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(217, 33%, 17%)" />
                   <XAxis dataKey="month" stroke="hsl(215, 20%, 55%)" fontSize={12} />
                   <YAxis stroke="hsl(215, 20%, 55%)" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(222, 47%, 8%)",
-                      border: "1px solid hsl(217, 33%, 17%)",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="active"
-                    stroke="hsl(142, 76%, 36%)"
-                    fillOpacity={1}
-                    fill="url(#colorActive)"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(222, 47%, 8%)", border: "1px solid hsl(217, 33%, 17%)", borderRadius: "8px" }} />
+                  <Legend />
+                  <Line type="stepAfter" dataKey="active" stroke="hsl(142, 76%, 36%)" strokeWidth={3} dot={{ r: 4, fill: "hsl(142, 76%, 36%)" }} name="Active" />
+                  <Line type="stepAfter" dataKey="pending" stroke="hsl(38, 92%, 50%)" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3, fill: "hsl(38, 92%, 50%)" }} name="Pending" />
+                  <Line type="stepAfter" dataKey="new" stroke="hsl(187, 85%, 53%)" strokeWidth={2} dot={{ r: 3, fill: "hsl(187, 85%, 53%)" }} name="New" />
+                </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -384,21 +382,13 @@ export default function MoUManagement() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={70}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                <BarChart data={pieData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(217, 33%, 17%)" horizontal={false} />
+                  <XAxis type="number" stroke="hsl(215, 20%, 55%)" fontSize={11} />
+                  <YAxis type="category" dataKey="name" width={60} stroke="hsl(215, 20%, 55%)" fontSize={11} />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(222, 47%, 8%)", border: "1px solid hsl(217, 33%, 17%)", borderRadius: "8px" }} />
+                  <Bar dataKey="value" radius={[0, 8, 8, 0]}>{pieData.map((entry, index) => (<Bar key={index} dataKey="value" fill={entry.color} />))}</Bar>
+                </BarChart>
               </ResponsiveContainer>
               <div className="flex flex-wrap justify-center gap-3 mt-4">
                 {pieData.map((item) => (

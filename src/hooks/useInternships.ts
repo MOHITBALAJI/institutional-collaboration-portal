@@ -15,6 +15,8 @@ export interface Internship {
   location: string | null;
   mode: string | null;
   positions: number | null;
+  max_applications?: number | null;
+  application_count?: number | null;
   application_deadline: string | null;
   start_date: string | null;
   status: "open" | "closed" | "in_progress" | "completed";

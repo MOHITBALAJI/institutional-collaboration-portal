@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { useAuth } from "./useAuth";
 
-type AppRole = "admin" | "industry_partner" | "faculty" | "student" | "alumni";
+export type AppRole = "admin" | "industry_partner" | "faculty" | "student" | "alumni";
 
-interface UserProfile {
+export interface UserProfile {
   id: string;
   user_id: string;
   full_name: string | null;
@@ -17,13 +17,14 @@ interface UserProfile {
 }
 
 export function useUserRole() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<AppRole | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchUserData = async (userId: string) => {
     try {
+      setLoading(true);
       // Fetch user role
       const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
@@ -34,9 +35,25 @@ export function useUserRole() {
       if (roleError && roleError.code !== "PGRST116") {
         console.error("Error fetching role:", roleError);
       }
-      
+
       if (roleData) {
         setRole(roleData.role as AppRole);
+      } else {
+        // Auto-assign "student" role for new users
+        try {
+          const { error: insertRoleError } = await supabase
+            .from("user_roles")
+            .insert({ user_id: userId, role: "student" });
+          if (!insertRoleError) {
+            setRole("student");
+          } else {
+            // Table might not exist yet — fall back to student in memory
+            console.warn("Could not auto-assign role:", insertRoleError.message);
+            setRole("student");
+          }
+        } catch {
+          setRole("student");
+        }
       }
 
       // Fetch user profile
@@ -49,41 +66,45 @@ export function useUserRole() {
       if (profileError && profileError.code !== "PGRST116") {
         console.error("Error fetching profile:", profileError);
       }
-      
+
       if (profileData) {
         setProfile(profileData);
+      } else {
+        // Auto-create a basic profile for new users
+        try {
+          const { data: userData } = await supabase.auth.getUser();
+          const email = userData?.user?.email || null;
+          const fullName = userData?.user?.user_metadata?.full_name || email?.split("@")[0] || null;
+          const { data: newProfile } = await supabase
+            .from("profiles")
+            .insert({ user_id: userId, email, full_name: fullName })
+            .select()
+            .single();
+          if (newProfile) {
+            setProfile(newProfile);
+          }
+        } catch {
+          console.warn("Could not auto-create profile");
+        }
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchUserData(session.user.id);
-        } else {
-          setRole(null);
-          setProfile(null);
-        }
+    if (!authLoading) {
+      if (user) {
+        fetchUserData(user.id);
+      } else {
+        setRole(null);
+        setProfile(null);
         setLoading(false);
       }
-    );
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await fetchUserData(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    }
+  }, [user, authLoading]);
 
   const isAdmin = role === "admin";
   const isFaculty = role === "faculty";
@@ -95,7 +116,7 @@ export function useUserRole() {
     user,
     role,
     profile,
-    loading,
+    loading: authLoading || loading,
     isAdmin,
     isFaculty,
     isStudent,

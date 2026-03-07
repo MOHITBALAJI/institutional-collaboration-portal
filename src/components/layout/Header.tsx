@@ -1,4 +1,5 @@
 import { Search, User } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { MobileMenuButton } from "./Sidebar";
 import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
@@ -61,6 +62,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
+        <ThemeToggle />
         <NotificationDropdown />
 
         <div className="flex items-center gap-3 ml-2 pl-4 border-l border-border">
@@ -68,7 +70,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
             <p className="text-sm font-medium">{loading ? "Loading..." : displayName}</p>
             <p className="text-xs text-muted-foreground">{roleLabel}</p>
           </div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative overflow-hidden">

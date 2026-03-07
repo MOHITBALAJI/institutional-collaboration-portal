@@ -38,14 +38,19 @@ export function useEvents() {
         .select("*")
         .order("start_datetime", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // Silently handle missing table (new Supabase DB)
+        if (error.message?.includes("does not exist") || error.code === "42P01") {
+          console.warn("Events table not found — using empty list");
+          setEvents([]);
+          return;
+        }
+        throw error;
+      }
       setEvents(data || []);
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error fetching events",
-        description: error.message,
-      });
+      console.error("Error fetching events:", error.message);
+      setEvents([]);
     } finally {
       setLoading(false);
     }

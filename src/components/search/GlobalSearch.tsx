@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Search, FileText, Briefcase, Users, GraduationCap, Calendar, Building2 } from "lucide-react";
+import { Search, FileText, Briefcase, Users, Calendar, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   CommandDialog,
@@ -16,14 +16,13 @@ import { Button } from "@/components/ui/button";
 interface SearchResult {
   id: string;
   title: string;
-  type: "mou" | "internship" | "research" | "alumni" | "event" | "partner";
+  type: "mou" | "internship" | "alumni" | "event" | "partner";
   subtitle?: string;
 }
 
 const typeIcons = {
   mou: FileText,
   internship: Briefcase,
-  research: GraduationCap,
   alumni: Users,
   event: Calendar,
   partner: Building2,
@@ -32,7 +31,6 @@ const typeIcons = {
 const typeRoutes = {
   mou: "/mou",
   internship: "/internships",
-  research: "/research",
   alumni: "/alumni",
   event: "/events",
   partner: "/partners",
@@ -103,23 +101,6 @@ export function GlobalSearch() {
         );
       }
 
-      // Search Research Projects
-      const { data: research } = await supabase
-        .from("research_projects")
-        .select("id, title, funding_source")
-        .ilike("title", `%${searchQuery}%`)
-        .limit(3);
-
-      if (research) {
-        searchResults.push(
-          ...research.map((r) => ({
-            id: r.id,
-            title: r.title,
-            type: "research" as const,
-            subtitle: r.funding_source || undefined,
-          }))
-        );
-      }
 
       // Search Alumni
       const { data: alumni } = await supabase
@@ -230,7 +211,7 @@ export function GlobalSearch() {
           )}
           {!loading && results.length > 0 && (
             <>
-              {["mou", "internship", "research", "alumni", "event", "partner"].map((type) => {
+              {["mou", "internship", "alumni", "event", "partner"].map((type) => {
                 const typeResults = results.filter((r) => r.type === type);
                 if (typeResults.length === 0) return null;
 
@@ -238,7 +219,6 @@ export function GlobalSearch() {
                 const labels = {
                   mou: "MoUs",
                   internship: "Internships",
-                  research: "Research Projects",
                   alumni: "Alumni",
                   event: "Events",
                   partner: "Industry Partners",

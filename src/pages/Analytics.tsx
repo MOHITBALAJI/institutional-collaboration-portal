@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   BarChart3,
   TrendingUp,
@@ -20,13 +22,12 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  ComposedChart,
   BarChart,
   Bar,
-  LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
+  Treemap,
+  Legend,
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
@@ -88,15 +89,36 @@ const kpis = [
 ];
 
 export default function Analytics() {
+  const [viewMode, setViewMode] = useState<"standard" | "global">("global");
   return (
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold font-display">
-            Analytics <span className="gradient-text">Dashboard</span>
-          </h1>
-          <p className="text-muted-foreground">Comprehensive insights into collaboration performance</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold font-display">
+              Analytics <span className="gradient-text">Dashboard</span>
+            </h1>
+            <p className="text-muted-foreground">Comprehensive insights into collaboration performance</p>
+          </div>
+          <div className="flex bg-white/5 border border-white/5 p-1 rounded-xl">
+            <Button
+              variant={viewMode === "standard" ? "gradient" : "ghost"}
+              size="sm"
+              className="h-8 text-[10px] uppercase font-black px-4 rounded-lg"
+              onClick={() => setViewMode("standard")}
+            >
+              Standard Stats
+            </Button>
+            <Button
+              variant={viewMode === "global" ? "gradient" : "ghost"}
+              size="sm"
+              className="h-8 text-[10px] uppercase font-black px-4 rounded-lg"
+              onClick={() => setViewMode("global")}
+            >
+              Global Reach
+            </Button>
+          </div>
         </div>
 
         {/* KPI Cards */}
@@ -160,90 +182,161 @@ export default function Analytics() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={placementData}>
+                <ComposedChart data={placementData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(217, 33%, 17%)" />
                   <XAxis dataKey="year" stroke="hsl(215, 20%, 55%)" fontSize={12} />
                   <YAxis stroke="hsl(215, 20%, 55%)" fontSize={12} />
                   <Tooltip contentStyle={{ backgroundColor: "hsl(222, 47%, 8%)", border: "1px solid hsl(217, 33%, 17%)", borderRadius: "8px" }} />
-                  <Bar dataKey="placed" fill="hsl(142, 76%, 36%)" radius={[4, 4, 0, 0]} name="Placement %" />
-                </BarChart>
+                  <Legend />
+                  <Bar dataKey="placed" fill="hsl(142, 76%, 36%)" radius={[4, 4, 0, 0]} name="Placement %" barSize={30} fillOpacity={0.7} />
+                  <Line type="monotone" dataKey="placed" stroke="hsl(38, 92%, 50%)" strokeWidth={2} dot={{ r: 4, fill: "hsl(38, 92%, 50%)" }} name="Trend" />
+                </ComposedChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>
 
-        {/* Secondary Charts */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Card variant="glass">
-            <CardHeader>
-              <CardTitle>Skill Gap Analysis</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={skillGapData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(217, 33%, 17%)" horizontal={false} />
-                  <XAxis type="number" stroke="hsl(215, 20%, 55%)" fontSize={12} domain={[0, 100]} />
-                  <YAxis type="category" dataKey="skill" stroke="hsl(215, 20%, 55%)" fontSize={12} width={50} />
-                  <Tooltip contentStyle={{ backgroundColor: "hsl(222, 47%, 8%)", border: "1px solid hsl(217, 33%, 17%)", borderRadius: "8px" }} />
-                  <Bar dataKey="industry" fill="hsl(187, 85%, 53%)" name="Industry Demand" radius={[0, 4, 4, 0]} />
-                  <Bar dataKey="student" fill="hsl(262, 83%, 58%)" name="Student Skills" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-              <div className="flex justify-center gap-4 mt-2">
-                <div className="flex items-center gap-1 text-xs">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <span>Industry Demand</span>
-                </div>
-                <div className="flex items-center gap-1 text-xs">
-                  <div className="h-2 w-2 rounded-full bg-accent" />
-                  <span>Student Skills</span>
+        {viewMode === "global" ? (
+          <Card variant="glass" className="overflow-hidden bg-black/40 border-primary/20 min-h-[600px] relative">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--primary-rgb),0.1)_0%,transparent_70%)]" />
+
+            {/* 3D Globe Visualization */}
+            <div className="relative z-10 flex flex-col items-center justify-center h-full min-h-[600px] py-12">
+              <div className="absolute top-8 left-8">
+                <h3 className="text-2xl font-black font-display tracking-tighter">Holographic <span className="gradient-text">Reach</span></h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="h-2 w-2 rounded-full bg-primary animate-ping" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Neural Grid v2.1 Active</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card variant="glass">
-            <CardHeader>
-              <CardTitle>Department Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={departmentPerformance} cx="50%" cy="50%" innerRadius={40} outerRadius={70} dataKey="value">
-                    {departmentPerformance.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex flex-wrap justify-center gap-3 mt-2">
-                {departmentPerformance.map((item) => (
-                  <div key={item.name} className="flex items-center gap-1 text-xs">
-                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-                    <span>{item.name}</span>
+              {/* SVG Globe */}
+              <div className="relative w-[500px] h-[500px]">
+                <svg className="w-full h-full animate-aurora-drift" viewBox="0 0 100 100">
+                  <defs>
+                    <radialGradient id="globeGrad">
+                      <stop offset="0%" stopColor="rgba(var(--primary-rgb), 0.2)" />
+                      <stop offset="100%" stopColor="transparent" />
+                    </radialGradient>
+                  </defs>
+                  {/* Sphere */}
+                  <circle cx="50" cy="50" r="45" fill="url(#globeGrad)" stroke="hsl(var(--primary))" strokeWidth="0.1" strokeDasharray="1,2" />
+
+                  {/* Latitudes & Longitudes */}
+                  {[...Array(6)].map((_, i) => (
+                    <ellipse key={`lat-${i}`} cx="50" cy="50" rx="45" ry={7.5 * i} fill="none" stroke="white" strokeOpacity="0.1" strokeWidth="0.05" />
+                  ))}
+                  {[...Array(6)].map((_, i) => (
+                    <ellipse key={`lon-${i}`} cx="50" cy="50" rx={7.5 * i} ry="45" fill="none" stroke="white" strokeOpacity="0.1" strokeWidth="0.05" />
+                  ))}
+
+                  {/* Data Points (Locations) */}
+                  {[
+                    { x: 30, y: 30, label: "San Francisco" },
+                    { x: 70, y: 40, label: "London" },
+                    { x: 60, y: 70, label: "Bangalore" },
+                    { x: 80, y: 20, label: "Tokyo" },
+                    { x: 20, y: 60, label: "Sydney" }
+                  ].map((p, i) => (
+                    <g key={i} className="group/loc cursor-pointer">
+                      <circle cx={p.x} cy={p.y} r="1" fill="hsl(var(--primary))">
+                        <animate attributeName="r" values="1;2;1" dur="2s" repeatCount="indefinite" />
+                      </circle>
+                      <circle cx={p.x} cy={p.y} r="6" fill="hsl(var(--primary))" fillOpacity="0.1" className="animate-pulse" />
+                      <text x={p.x} y={p.y - 3} textAnchor="middle" className="text-[2px] fill-white opacity-0 group-hover/loc:opacity-100 transition-opacity font-bold uppercase">{p.label}</text>
+                    </g>
+                  ))}
+
+                  {/* Scanning Line */}
+                  <line x1="5" y1="0" x2="95" y2="0" stroke="hsl(var(--primary))" strokeWidth="0.2" opacity="0.5">
+                    <animateTransform attributeName="transform" type="translate" from="0 0" to="0 100" dur="4s" repeatCount="indefinite" />
+                  </line>
+                </svg>
+              </div>
+
+              {/* Bottom Stats Overlay */}
+              <div className="absolute bottom-8 grid grid-cols-3 gap-12 text-center">
+                <div>
+                  <div className="text-4xl font-black font-display gradient-text">42</div>
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase mt-1">Global Entities</div>
+                </div>
+                <div>
+                  <div className="text-4xl font-black font-display gradient-text">15</div>
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase mt-1">Industry Hubs</div>
+                </div>
+                <div>
+                  <div className="text-4xl font-black font-display gradient-text">8k+</div>
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase mt-1">Neural Syncs</div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Card variant="glass">
+              <CardHeader>
+                <CardTitle>Skill Gap Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={skillGapData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(217, 33%, 17%)" horizontal={false} />
+                    <XAxis type="number" stroke="hsl(215, 20%, 55%)" fontSize={12} domain={[0, 100]} />
+                    <YAxis type="category" dataKey="skill" stroke="hsl(215, 20%, 55%)" fontSize={12} width={50} />
+                    <Tooltip contentStyle={{ backgroundColor: "hsl(222, 47%, 8%)", border: "1px solid hsl(217, 33%, 17%)", borderRadius: "8px" }} />
+                    <Bar dataKey="industry" fill="hsl(187, 85%, 53%)" name="Industry Demand" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="student" fill="hsl(262, 83%, 58%)" name="Student Skills" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="flex justify-center gap-4 mt-2">
+                  <div className="flex items-center gap-1 text-xs">
+                    <div className="h-2 w-2 rounded-full bg-primary" />
+                    <span>Industry Demand</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="flex items-center gap-1 text-xs">
+                    <div className="h-2 w-2 rounded-full bg-accent" />
+                    <span>Student Skills</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card variant="glass">
-            <CardHeader>
-              <CardTitle>Overall Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <RadarChart data={radarData}>
-                  <PolarGrid stroke="hsl(217, 33%, 17%)" />
-                  <PolarAngleAxis dataKey="subject" stroke="hsl(215, 20%, 55%)" fontSize={10} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="hsl(215, 20%, 55%)" fontSize={10} />
-                  <Radar name="Performance" dataKey="A" stroke="hsl(187, 85%, 53%)" fill="hsl(187, 85%, 53%)" fillOpacity={0.3} strokeWidth={2} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+            <Card variant="glass">
+              <CardHeader>
+                <CardTitle>Department Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={220}>
+                  <Treemap data={departmentPerformance.map(e => ({ name: e.name, size: e.value, fill: e.color }))} dataKey="size" aspectRatio={4 / 3} stroke="hsl(222, 18%, 12%)" />
+                </ResponsiveContainer>
+                <div className="flex flex-wrap justify-center gap-3 mt-2">
+                  {departmentPerformance.map((item) => (
+                    <div key={item.name} className="flex items-center gap-1 text-xs">
+                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span>{item.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card variant="glass">
+              <CardHeader>
+                <CardTitle>Overall Performance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <RadarChart data={radarData}>
+                    <PolarGrid stroke="hsl(217, 33%, 17%)" />
+                    <PolarAngleAxis dataKey="subject" stroke="hsl(215, 20%, 55%)" fontSize={10} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="hsl(215, 20%, 55%)" fontSize={10} />
+                    <Radar name="Performance" dataKey="A" stroke="hsl(187, 85%, 53%)" fill="hsl(187, 85%, 53%)" fillOpacity={0.3} strokeWidth={2} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Key Insights */}
         <Card variant="glass">

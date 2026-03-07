@@ -30,18 +30,17 @@ import {
   GraduationCap,
   UserCheck,
   Calendar,
+  History,
 } from "lucide-react";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  Treemap,
 } from "recharts";
 
 const graduationData = [
@@ -60,9 +59,22 @@ const industryData = [
   { name: "Manufacturing", value: 12, color: "hsl(38, 92%, 50%)" },
   { name: "Others", value: 8, color: "hsl(0, 84%, 60%)" },
 ];
+const sampleAlumni: Alumni[] = [
+  { id: "a1", user_id: null, full_name: "Arun Prakash", email: "arun.prakash@google.com", phone: "+91 98765 43210", graduation_year: 2018, department: "Computer Science", degree: "B.Tech", current_company: "Google", current_position: "Senior Software Engineer", linkedin_url: "https://linkedin.com/in/arunprakash", is_mentor: true, mentorship_areas: ["System Design", "DSA", "Interview Prep"], availability: "weekends", verified: true, created_at: "2024-01-01T10:00:00Z", updated_at: "2024-01-01T10:00:00Z" },
+  { id: "a2", user_id: null, full_name: "Sneha Reddy", email: "sneha.reddy@microsoft.com", phone: "+91 87654 32109", graduation_year: 2019, department: "Computer Science", degree: "M.Tech", current_company: "Microsoft", current_position: "Product Manager", linkedin_url: "https://linkedin.com/in/snehareddy", is_mentor: true, mentorship_areas: ["Product Management", "Career Transition", "Leadership"], availability: "evenings", verified: true, created_at: "2024-02-01T10:00:00Z", updated_at: "2024-02-01T10:00:00Z" },
+  { id: "a3", user_id: null, full_name: "Vikram Mehta", email: "vikram@razorpay.com", phone: "+91 76543 21098", graduation_year: 2017, department: "Electronics", degree: "B.Tech", current_company: "Razorpay", current_position: "Engineering Manager", linkedin_url: "https://linkedin.com/in/vikrammehta", is_mentor: true, mentorship_areas: ["FinTech", "Engineering Management", "Startups"], availability: "flexible", verified: true, created_at: "2024-01-15T10:00:00Z", updated_at: "2024-01-15T10:00:00Z" },
+  { id: "a4", user_id: null, full_name: "Divya Krishnan", email: "divya.k@amazon.com", phone: "+91 65432 10987", graduation_year: 2020, department: "Computer Science", degree: "B.Tech", current_company: "Amazon", current_position: "SDE-II", linkedin_url: "https://linkedin.com/in/divyakrishnan", is_mentor: false, mentorship_areas: null, availability: null, verified: true, created_at: "2024-03-01T10:00:00Z", updated_at: "2024-03-01T10:00:00Z" },
+  { id: "a5", user_id: null, full_name: "Rahul Jain", email: "rahul.jain@goldmansachs.com", phone: "+91 54321 09876", graduation_year: 2016, department: "Mathematics", degree: "M.Sc", current_company: "Goldman Sachs", current_position: "VP — Quantitative Finance", linkedin_url: "https://linkedin.com/in/rahuljain", is_mentor: true, mentorship_areas: ["Quantitative Finance", "Data Science", "Mathematics"], availability: "weekends", verified: true, created_at: "2024-04-01T10:00:00Z", updated_at: "2024-04-01T10:00:00Z" },
+  { id: "a6", user_id: null, full_name: "Priyanka Desai", email: "priyanka@flipkart.com", phone: "+91 43210 98765", graduation_year: 2021, department: "Information Technology", degree: "B.Tech", current_company: "Flipkart", current_position: "Software Engineer", linkedin_url: "https://linkedin.com/in/priyankadesai", is_mentor: false, mentorship_areas: null, availability: null, verified: false, created_at: "2024-05-01T10:00:00Z", updated_at: "2024-05-01T10:00:00Z" },
+  { id: "a7", user_id: null, full_name: "Karthik Iyer", email: "karthik@deloitte.com", phone: "+91 32109 87654", graduation_year: 2015, department: "Mechanical Engineering", degree: "B.Tech", current_company: "Deloitte", current_position: "Senior Consultant", linkedin_url: "https://linkedin.com/in/karthikiyer", is_mentor: true, mentorship_areas: ["Consulting", "MBA Prep", "Career Switch"], availability: "evenings", verified: true, created_at: "2024-06-01T10:00:00Z", updated_at: "2024-06-01T10:00:00Z" },
+  { id: "a8", user_id: null, full_name: "Neha Gupta", email: "neha.gupta@stripe.com", phone: "+91 21098 76543", graduation_year: 2019, department: "Computer Science", degree: "B.Tech", current_company: "Stripe", current_position: "Staff Engineer", linkedin_url: "https://linkedin.com/in/nehagupta", is_mentor: true, mentorship_areas: ["Backend Systems", "Payments", "Distributed Systems"], availability: "flexible", verified: true, created_at: "2024-07-01T10:00:00Z", updated_at: "2024-07-01T10:00:00Z" },
+  { id: "a9", user_id: null, full_name: "Siddharth Nair", email: "sid@zoho.com", phone: "+91 10987 65432", graduation_year: 2022, department: "Computer Science", degree: "B.Tech", current_company: "Zoho", current_position: "Member Technical Staff", linkedin_url: null, is_mentor: false, mentorship_areas: null, availability: null, verified: false, created_at: "2024-08-01T10:00:00Z", updated_at: "2024-08-01T10:00:00Z" },
+  { id: "a10", user_id: null, full_name: "Ananya Chatterjee", email: "ananya@tesla.com", phone: "+91 09876 54321", graduation_year: 2018, department: "Electrical Engineering", degree: "M.Tech", current_company: "Tesla", current_position: "Lead Firmware Engineer", linkedin_url: "https://linkedin.com/in/ananyachatterjee", is_mentor: true, mentorship_areas: ["Embedded Systems", "EV Technology", "Hardware-Software Integration"], availability: "weekends", verified: true, created_at: "2024-09-01T10:00:00Z", updated_at: "2024-09-01T10:00:00Z" },
+];
 
 export default function AlumniNetwork() {
-  const { alumni, loading, createAlumni, updateAlumni, deleteAlumni } = useAlumni();
+  const { alumni: dbAlumni, loading, createAlumni, updateAlumni, deleteAlumni } = useAlumni();
+  const alumni = dbAlumni.length > 0 ? dbAlumni : sampleAlumni;
   const [searchQuery, setSearchQuery] = useState("");
   const [mentorFilter, setMentorFilter] = useState<string>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -192,77 +204,81 @@ export default function AlumniNetwork() {
             </h1>
             <p className="text-muted-foreground">Connect with alumni and manage mentorship programs</p>
           </div>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button variant="gradient">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Alumni
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Add Alumni</DialogTitle>
-                <DialogDescription>Register a new alumni profile</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Full Name *</Label>
-                    <Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} placeholder="John Doe" />
+          <div className="flex gap-2">
+
+
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button variant="gradient">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Alumni
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add Alumni Entity</DialogTitle>
+                  <DialogDescription>Initialize a new neural node in the Alumni Galaxy</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Full Name *</Label>
+                      <Input value={formData.full_name} onChange={(e) => setFormData({ ...formData, full_name: e.target.value })} placeholder="John Doe" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Email</Label>
+                      <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="john@example.com" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Graduation Year</Label>
+                      <Input type="number" value={formData.graduation_year} onChange={(e) => setFormData({ ...formData, graduation_year: e.target.value })} placeholder="2020" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Department</Label>
+                      <Input value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} placeholder="Computer Science" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Degree</Label>
+                      <Input value={formData.degree} onChange={(e) => setFormData({ ...formData, degree: e.target.value })} placeholder="B.Tech" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Current Company</Label>
+                      <Input value={formData.current_company} onChange={(e) => setFormData({ ...formData, current_company: e.target.value })} placeholder="Google" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Current Position</Label>
+                      <Input value={formData.current_position} onChange={(e) => setFormData({ ...formData, current_position: e.target.value })} placeholder="Software Engineer" />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="john@example.com" />
+                    <Label>LinkedIn URL</Label>
+                    <Input value={formData.linkedin_url} onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })} placeholder="https://linkedin.com/in/johndoe" />
                   </div>
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <Label>Available as Mentor</Label>
+                      <p className="text-sm text-muted-foreground">Can students request mentorship sessions?</p>
+                    </div>
+                    <Switch checked={formData.is_mentor} onCheckedChange={(checked) => setFormData({ ...formData, is_mentor: checked })} />
+                  </div>
+                  {formData.is_mentor && (
+                    <div className="space-y-2">
+                      <Label>Mentorship Areas (comma-separated)</Label>
+                      <Input value={formData.mentorship_areas} onChange={(e) => setFormData({ ...formData, mentorship_areas: e.target.value })} placeholder="Career guidance, Interview prep, ..." />
+                    </div>
+                  )}
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>Graduation Year</Label>
-                    <Input type="number" value={formData.graduation_year} onChange={(e) => setFormData({ ...formData, graduation_year: e.target.value })} placeholder="2020" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Department</Label>
-                    <Input value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} placeholder="Computer Science" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Degree</Label>
-                    <Input value={formData.degree} onChange={(e) => setFormData({ ...formData, degree: e.target.value })} placeholder="B.Tech" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Current Company</Label>
-                    <Input value={formData.current_company} onChange={(e) => setFormData({ ...formData, current_company: e.target.value })} placeholder="Google" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Current Position</Label>
-                    <Input value={formData.current_position} onChange={(e) => setFormData({ ...formData, current_position: e.target.value })} placeholder="Software Engineer" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>LinkedIn URL</Label>
-                  <Input value={formData.linkedin_url} onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })} placeholder="https://linkedin.com/in/johndoe" />
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <Label>Available as Mentor</Label>
-                    <p className="text-sm text-muted-foreground">Can students request mentorship sessions?</p>
-                  </div>
-                  <Switch checked={formData.is_mentor} onCheckedChange={(checked) => setFormData({ ...formData, is_mentor: checked })} />
-                </div>
-                {formData.is_mentor && (
-                  <div className="space-y-2">
-                    <Label>Mentorship Areas (comma-separated)</Label>
-                    <Input value={formData.mentorship_areas} onChange={(e) => setFormData({ ...formData, mentorship_areas: e.target.value })} placeholder="Career guidance, Interview prep, ..." />
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
-                <Button variant="gradient" onClick={handleCreate} disabled={!formData.full_name}>Add Alumni</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
+                  <Button variant="gradient" onClick={handleCreate} disabled={!formData.full_name}>Add Alumni</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Stats */}
@@ -293,13 +309,13 @@ export default function AlumniNetwork() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={graduationData}>
+                <LineChart data={graduationData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(217, 33%, 17%)" />
                   <XAxis dataKey="year" stroke="hsl(215, 20%, 55%)" fontSize={12} />
                   <YAxis stroke="hsl(215, 20%, 55%)" fontSize={12} />
                   <Tooltip contentStyle={{ backgroundColor: "hsl(222, 47%, 8%)", border: "1px solid hsl(217, 33%, 17%)", borderRadius: "8px" }} />
-                  <Bar dataKey="count" fill="hsl(187, 85%, 53%)" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                  <Line type="monotone" dataKey="count" stroke="hsl(187, 85%, 53%)" strokeWidth={3} dot={{ r: 6, fill: "hsl(187, 85%, 53%)", strokeWidth: 3, stroke: "hsl(222, 47%, 8%)" }} activeDot={{ r: 8 }} />
+                </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -309,15 +325,8 @@ export default function AlumniNetwork() {
               <CardTitle>Industry Distribution</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={industryData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} dataKey="value">
-                    {industryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+              <ResponsiveContainer width="100%" height={250}>
+                <Treemap data={industryData.map(e => ({ name: e.name, size: e.value, fill: e.color }))} dataKey="size" aspectRatio={4 / 3} stroke="hsl(222, 18%, 12%)" />
               </ResponsiveContainer>
               <div className="flex flex-wrap justify-center gap-3 mt-4">
                 {industryData.map((item) => (
@@ -330,6 +339,7 @@ export default function AlumniNetwork() {
             </CardContent>
           </Card>
         </div>
+
 
         {/* Filters & Table */}
         <Card variant="glass">

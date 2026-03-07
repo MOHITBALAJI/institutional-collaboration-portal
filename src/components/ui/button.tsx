@@ -22,7 +22,7 @@ const buttonVariants = cva(
           "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-lg hover:shadow-xl",
         glow: "bg-primary text-primary-foreground shadow-lg hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)] transition-shadow",
         glass:
-          "bg-card/50 backdrop-blur-xl border border-border/50 hover:bg-card/70 hover:border-primary/30",
+          "bg-card/40 dark:bg-card/50 backdrop-blur-xl border border-border/40 dark:border-border/50 hover:bg-card/60 dark:hover:bg-card/70 hover:border-primary/40",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -39,19 +39,31 @@ const buttonVariants = cva(
   }
 )
 
+import { useSound } from "@/hooks/useSound"
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, onClick, onMouseEnter, ...props }, ref) => {
+    const { playClick, playHover } = useSound()
     const Comp = asChild ? Slot : "button"
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        onMouseEnter={(e) => {
+          playHover()
+          onMouseEnter?.(e)
+        }}
+        onClick={(e) => {
+          playClick()
+          onClick?.(e)
+        }}
         {...props}
       />
     )

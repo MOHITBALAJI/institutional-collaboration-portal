@@ -2,23 +2,55 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { 
-  FileText, 
-  Briefcase, 
-  Users, 
+import {
+  FileText,
+  Briefcase,
+  Users,
   Building2,
-  TrendingUp,
   Calendar,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
   ArrowRight,
-  GraduationCap
+  TrendingUp,
+  Activity,
+  Clock,
+  BarChart3,
+  Shield,
+  Bell,
+  GraduationCap,
+  Zap,
+  AlertCircle
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useMoUs } from "@/hooks/useMoUs";
 import { useInternships } from "@/hooks/useInternships";
 import { useIndustryPartners } from "@/hooks/useIndustryPartners";
 import { useEvents } from "@/hooks/useEvents";
+import { CampusPulse } from "./CampusPulse";
+import { ProgressRing } from "./ProgressRing";
+
+// Animated system health pulse
+function HealthPulse({ status = "healthy" }: { status?: "healthy" | "warning" | "critical" }) {
+  const colors = {
+    healthy: "bg-success",
+    warning: "bg-warning",
+    critical: "bg-destructive",
+  };
+  return (
+    <div className="flex items-center gap-2">
+      <div className="relative">
+        <div className={`h-3 w-3 rounded-full ${colors[status]}`} />
+        <div className={`absolute inset-0 h-3 w-3 rounded-full ${colors[status]} animate-ping opacity-75`} />
+      </div>
+      <span className="text-xs font-medium capitalize">{status}</span>
+    </div>
+  );
+}
+
+const activityFeed = [
+  { text: "New MoU signed with TCS", time: "2m ago", icon: FileText, color: "text-primary" },
+  { text: "Student bulk import completed", time: "15m ago", icon: Users, color: "text-success" },
+  { text: "Event registration opened", time: "1h ago", icon: Calendar, color: "text-accent" },
+  { text: "3 new partner applications", time: "3h ago", icon: Building2, color: "text-warning" },
+];
 
 export function AdminDashboard() {
   const { mous } = useMoUs();
@@ -26,200 +58,207 @@ export function AdminDashboard() {
   const { partners } = useIndustryPartners();
   const { events } = useEvents();
 
-  const activeMous = mous.filter(m => m.status === 'active').length;
-  const pendingMous = mous.filter(m => m.status === 'pending_approval').length;
-  const activeInternships = internships.filter(i => i.status === 'open' || i.status === 'in_progress').length;
-  const activePartners = partners.filter(p => p.status === 'active').length;
-  const upcomingEvents = events.filter(e => e.status === 'upcoming').length;
-
-  const recentActivity = [
-    { id: 1, action: "New MoU submitted", entity: "TechCorp India", type: "mou", time: "10 min ago", status: "pending" },
-    { id: 2, action: "Internship posting approved", entity: "AI Engineer Intern", type: "internship", time: "1 hour ago", status: "approved" },
-    { id: 3, action: "Partner registration", entity: "GlobalTech Solutions", type: "partner", time: "2 hours ago", status: "pending" },
-    { id: 4, action: "Event created", entity: "Industry Connect 2024", type: "event", time: "3 hours ago", status: "approved" },
-  ];
-
-  const expiringMous = mous.filter(m => {
-    if (!m.end_date) return false;
-    const daysLeft = Math.ceil((new Date(m.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-    return daysLeft > 0 && daysLeft <= 30;
-  }).slice(0, 3);
+  const activeMous = mous.filter(m => m.status === 'active');
+  const activeInternships = internships.filter(i => i.status === 'open');
+  const upcomingEvents = events.filter(e => e.status === 'upcoming');
 
   return (
     <div className="space-y-6">
-      {/* Key Metrics */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-        <Card variant="glass" className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <FileText className="h-5 w-5 text-primary" />
+      {/* 1. KPI Strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { icon: FileText, value: activeMous.length, label: "Active Agreements", color: "bg-primary/10", iconColor: "text-primary" },
+          { icon: Building2, value: partners.length, label: "Industry Partners", color: "bg-accent/10", iconColor: "text-accent" },
+          { icon: Briefcase, value: activeInternships.length, label: "Open Roles", color: "bg-success/10", iconColor: "text-success" },
+          { icon: Users, value: "1.2k", label: "Active Students", color: "bg-warning/10", iconColor: "text-warning" },
+        ].map((kpi) => (
+          <Card key={kpi.label} variant="glass" className="p-4 group border-white/5 hover:border-white/10 transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-black font-display tracking-tight">{kpi.value}</div>
+                <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">{kpi.label}</div>
+              </div>
+              <div className={`h-10 w-10 rounded-xl ${kpi.color} flex items-center justify-center`}>
+                <kpi.icon className={`h-5 w-5 ${kpi.iconColor}`} />
+              </div>
             </div>
-            {pendingMous > 0 && (
-              <Badge variant="destructive" className="text-xs">{pendingMous} pending</Badge>
-            )}
-          </div>
-          <div className="text-3xl font-bold mb-1">{activeMous}</div>
-          <div className="text-sm text-muted-foreground">Active MoUs</div>
-        </Card>
-
-        <Card variant="glass" className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
-              <Building2 className="h-5 w-5 text-success" />
-            </div>
-            <TrendingUp className="h-4 w-4 text-success" />
-          </div>
-          <div className="text-3xl font-bold mb-1">{activePartners}</div>
-          <div className="text-sm text-muted-foreground">Industry Partners</div>
-        </Card>
-
-        <Card variant="glass" className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center">
-              <Briefcase className="h-5 w-5 text-accent" />
-            </div>
-          </div>
-          <div className="text-3xl font-bold mb-1">{activeInternships}</div>
-          <div className="text-sm text-muted-foreground">Active Internships</div>
-        </Card>
-
-        <Card variant="glass" className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="h-10 w-10 rounded-xl bg-warning/10 flex items-center justify-center">
-              <Calendar className="h-5 w-5 text-warning" />
-            </div>
-          </div>
-          <div className="text-3xl font-bold mb-1">{upcomingEvents}</div>
-          <div className="text-sm text-muted-foreground">Upcoming Events</div>
-        </Card>
+          </Card>
+        ))}
       </div>
 
-      {/* Performance Overview */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card variant="glass" className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg">This Quarter's Performance</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-5">
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4 text-primary" />
-                    Placement Rate
-                  </span>
-                  <span className="text-primary font-medium">92%</span>
-                </div>
-                <Progress value={92} className="h-3" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-success" />
-                    MoU Conversion
-                  </span>
-                  <span className="text-success font-medium">78%</span>
-                </div>
-                <Progress value={78} className="h-3 [&>div]:bg-success" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-accent" />
-                    Partner Engagement
-                  </span>
-                  <span className="text-accent font-medium">85%</span>
-                </div>
-                <Progress value={85} className="h-3 [&>div]:bg-accent" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-warning" />
-                    Student Satisfaction
-                  </span>
-                  <span className="text-warning font-medium">4.5/5</span>
-                </div>
-                <Progress value={90} className="h-3 [&>div]:bg-warning" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* 2. Main Bento Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* Alerts */}
-        <Card variant="glass">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-warning" />
-              Attention Needed
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {pendingMous > 0 && (
-                <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
-                  <div className="flex items-center gap-2 text-warning text-sm font-medium mb-1">
-                    <Clock className="h-4 w-4" />
-                    {pendingMous} MoUs pending approval
-                  </div>
+        {/* Left Column: Intelligence & Actions (4 cols) */}
+        <div className="lg:col-span-4 space-y-6">
+          <Card variant="glass" className="bg-black/40 border-primary/20 bg-[radial-gradient(ellipse_at_top_right,rgba(var(--accent-rgb),0.1),transparent)] relative overflow-hidden group">
+            <CardHeader className="pb-2 text-left">
+              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                <Shield className="h-4 w-4 text-accent" /> Intelligence
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-3 rounded-2xl border border-destructive/20 bg-destructive/10">
+                <div className="flex items-center gap-2 text-destructive mb-1">
+                  <AlertCircle className="h-3 w-3" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Efficiency Drop</span>
                 </div>
-              )}
-              {expiringMous.length > 0 && (
-                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <div className="flex items-center gap-2 text-destructive text-sm font-medium mb-1">
-                    <AlertCircle className="h-4 w-4" />
-                    {expiringMous.length} MoUs expiring soon
-                  </div>
-                </div>
-              )}
-              <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                <div className="flex items-center gap-2 text-primary text-sm font-medium mb-1">
-                  <CheckCircle2 className="h-4 w-4" />
-                  All systems operational
-                </div>
+                <p className="text-[10px] font-bold text-muted-foreground text-left leading-relaxed">Placement rates in <span className="text-white">CSE-B</span> trending down by 14%.</p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Recent Activity */}
-      <Card variant="glass">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Recent Activity</CardTitle>
-          <Button variant="ghost" size="sm" className="text-primary">
-            View All <ArrowRight className="ml-1 h-4 w-4" />
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-center gap-4 p-4 rounded-xl bg-secondary/30">
-                <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                  activity.type === 'mou' ? 'bg-primary/10' :
-                  activity.type === 'internship' ? 'bg-accent/10' :
-                  activity.type === 'partner' ? 'bg-success/10' : 'bg-warning/10'
-                }`}>
-                  {activity.type === 'mou' && <FileText className="h-5 w-5 text-primary" />}
-                  {activity.type === 'internship' && <Briefcase className="h-5 w-5 text-accent" />}
-                  {activity.type === 'partner' && <Building2 className="h-5 w-5 text-success" />}
-                  {activity.type === 'event' && <Calendar className="h-5 w-5 text-warning" />}
+              <div className="p-3 rounded-2xl border border-success/20 bg-success/10">
+                <div className="flex items-center gap-2 text-success mb-1">
+                  <TrendingUp className="h-3 w-3" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Growth Forecast</span>
                 </div>
-                <div className="flex-1">
-                  <div className="font-medium">{activity.action}</div>
-                  <div className="text-sm text-muted-foreground">{activity.entity}</div>
-                </div>
-                <div className="text-right">
-                  <Badge variant={activity.status === 'approved' ? 'default' : 'secondary'}>
-                    {activity.status}
-                  </Badge>
-                  <div className="text-xs text-muted-foreground mt-1">{activity.time}</div>
-                </div>
+                <p className="text-[10px] font-bold text-muted-foreground text-left leading-relaxed">Neural sync predicts 24% increase in <span className="text-white">Google</span> hires next quarter.</p>
               </div>
-            ))}
+
+              <Button variant="outline" className="w-full text-[10px] font-black uppercase tracking-widest border-white/10 bg-white/5 h-10 hover:bg-accent hover:text-white transition-all">
+                System Audit
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card variant="glass" className="border-white/5">
+            <CardHeader className="pb-2 text-left">
+              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" /> Admin Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-2">
+              {[
+                { icon: FileText, label: "Add MoU", bg: "bg-primary/5", border: "border-primary/20" },
+                { icon: Users, label: "Bulk Import", bg: "bg-success/5", border: "border-success/20" },
+                { icon: BarChart3, label: "Analytics", bg: "bg-accent/5", border: "border-accent/20" },
+                { icon: Bell, label: "Push Alert", bg: "bg-warning/5", border: "border-warning/20" },
+              ].map((action) => (
+                <Button key={action.label} variant="ghost" className={`h-20 flex-col gap-1 rounded-2xl ${action.bg} border ${action.border} hover:scale-[1.02] transition-all`}>
+                  <action.icon className="h-5 w-5 text-primary" />
+                  <span className="text-[10px] font-bold uppercase tracking-tight">{action.label}</span>
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column: Performance & Lifecycle (8 cols) */}
+        <div className="lg:col-span-8 space-y-6">
+          <SystemPerformanceNexus />
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div className="md:col-span-7">
+              <CampusPulse />
+            </div>
+            <div className="md:col-span-5 space-y-6">
+              <Card variant="glass" className="border-primary/10">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 text-left">
+                  <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-primary" /> Live Feed
+                  </CardTitle>
+                  <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {activityFeed.slice(0, 3).map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 hover:bg-primary/5 transition-all text-left">
+                        <div className={`h-8 w-8 rounded-lg bg-background border border-white/10 flex items-center justify-center shrink-0 ${item.color}`}>
+                          <item.icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-bold leading-tight truncate">{item.text}</p>
+                          <p className="text-[8px] text-muted-foreground uppercase mt-0.5">{item.time}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card variant="glass" className="border-white/5 overflow-hidden">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="relative mb-4">
+                      <div className="absolute inset-0 bg-success/20 blur-xl rounded-full" />
+                      <HealthPulse status="healthy" />
+                    </div>
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-success">All Nodes Active</h4>
+                    <p className="text-[9px] text-muted-foreground mt-2 px-4 leading-relaxed uppercase font-bold tracking-tight">Sync rate 99.8% across nodes.</p>
+                    <div className="w-full h-1 bg-white/5 rounded-full mt-4 overflow-hidden">
+                      <div className="h-full bg-success w-[99.8%]" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+
+      </div>
+    </div >
+  );
+}
+
+function SystemPerformanceNexus() {
+  return (
+    <Card variant="glass" className="overflow-hidden relative bg-black/40 border-white/5 group rounded-[2.5rem]">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/5" />
+      <div className="absolute -left-12 -bottom-12 h-64 w-64 bg-accent/20 rounded-full blur-[100px] group-hover:bg-accent/30 transition-colors duration-1000" />
+
+      <CardContent className="p-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+          <div className="space-y-6 text-left">
+            <div className="space-y-2">
+              <Badge variant="outline" className="text-[10px] font-black tracking-[0.2em] bg-accent/10 text-accent border-accent/20 uppercase px-3 rounded-full">
+                System Performance Nexus
+              </Badge>
+              <h2 className="text-3xl font-black font-display tracking-tight leading-none uppercase text-white">
+                Campus <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary">Efficiency</span>
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <span>Placement Conversion</span>
+                <span className="text-accent">OPTIMIZED</span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: "94%" }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  className="h-full bg-gradient-to-r from-accent via-primary to-accent bg-[length:200%_auto] animate-gradient"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "Stability", val: "99.9%" },
+                { label: "Response", val: "42ms" },
+                { label: "Uptime", val: "320d" },
+              ].map((m) => (
+                <div key={m.label} className="p-3 rounded-2xl bg-white/5 border border-white/5 flex flex-col items-center">
+                  <span className="text-[8px] font-bold text-muted-foreground uppercase opacity-60 tracking-tighter">{m.label}</span>
+                  <span className="text-sm font-black text-white mt-1">{m.val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative flex justify-center">
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
+              <ProgressRing value={94} size={180} strokeWidth={12} />
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <Shield className="h-8 w-8 text-primary mb-1" />
+                <span className="text-xs font-black uppercase tracking-widest">Trust</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
