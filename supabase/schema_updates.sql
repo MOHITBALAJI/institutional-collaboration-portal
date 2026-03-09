@@ -45,7 +45,7 @@ END $$;
 -- Profiles
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id uuid REFERENCES auth.users(id) NOT NULL UNIQUE,
+  user_id uuid REFERENCES auth.users(id) UNIQUE,
   full_name text,
   email text,
   department text,
@@ -56,6 +56,36 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
+
+-- Safely add columns in case the table already existed with a different schema
+DO $$ 
+BEGIN
+  BEGIN
+    ALTER TABLE public.profiles ADD COLUMN user_id uuid REFERENCES auth.users(id) UNIQUE;
+  EXCEPTION WHEN duplicate_column THEN END;
+  
+  BEGIN
+    ALTER TABLE public.profiles ADD COLUMN full_name text;
+  EXCEPTION WHEN duplicate_column THEN END;
+  
+  BEGIN
+    ALTER TABLE public.profiles ADD COLUMN email text;
+  EXCEPTION WHEN duplicate_column THEN END;
+
+  BEGIN
+    ALTER TABLE public.profiles ADD COLUMN department text;
+  EXCEPTION WHEN duplicate_column THEN END;
+
+  BEGIN
+    ALTER TABLE public.profiles ADD COLUMN designation text;
+  EXCEPTION WHEN duplicate_column THEN END;
+
+  BEGIN
+    ALTER TABLE public.profiles ADD COLUMN preferences jsonb DEFAULT '{}'::jsonb;
+  EXCEPTION WHEN duplicate_column THEN END;
+END $$;
+
+
 
 -- User Roles
 CREATE TABLE IF NOT EXISTS public.user_roles (
@@ -331,6 +361,30 @@ CREATE TABLE IF NOT EXISTS public.learning_milestones (
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
+
+-- Safely add created_by to other tables in case they already existed
+DO $$ 
+BEGIN
+  BEGIN
+    ALTER TABLE public.industry_partners ADD COLUMN created_by uuid REFERENCES auth.users(id);
+  EXCEPTION WHEN duplicate_column THEN END;
+
+  BEGIN
+    ALTER TABLE public.events ADD COLUMN created_by uuid REFERENCES auth.users(id);
+  EXCEPTION WHEN duplicate_column THEN END;
+
+  BEGIN
+    ALTER TABLE public.internships ADD COLUMN created_by uuid REFERENCES auth.users(id);
+  EXCEPTION WHEN duplicate_column THEN END;
+
+  BEGIN
+    ALTER TABLE public.mous ADD COLUMN created_by uuid REFERENCES auth.users(id);
+  EXCEPTION WHEN duplicate_column THEN END;
+
+  BEGIN
+    ALTER TABLE public.research_projects ADD COLUMN created_by uuid REFERENCES auth.users(id);
+  EXCEPTION WHEN duplicate_column THEN END;
+END $$;
 
 
 -- ========================

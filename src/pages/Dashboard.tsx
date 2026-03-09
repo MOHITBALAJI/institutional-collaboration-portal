@@ -89,10 +89,7 @@ export default function Dashboard() {
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-display tracking-tight text-foreground leading-[0.9]">
-                Hello, <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] animate-gradient">
-                  {firstName}
-                </span>
+                Hello MOHIT,
               </h1>
 
               <p className="text-lg text-muted-foreground/80 font-medium leading-relaxed max-w-lg">
@@ -104,7 +101,7 @@ export default function Dashboard() {
             <div className="flex flex-col items-end gap-4">
               <div className="text-right">
                 <p className="text-3xl font-black font-display text-primary drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]">
-                  {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </p>
                 <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
                   {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -118,7 +115,7 @@ export default function Dashboard() {
                     className="group h-12 px-6 rounded-2xl border-primary/20 hover:border-primary/40 bg-primary/10 dark:bg-primary/5 hover:bg-primary/20 transition-all duration-500 shadow-xl"
                   >
                     <CalendarIcon className="mr-2 h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-black uppercase tracking-widest">Neural Calendar</span>
+                    <span className="text-xs font-black uppercase tracking-widest">Calendar</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[300px] p-0 bg-background/95 dark:bg-black/80 backdrop-blur-2xl border-border dark:border-white/10 rounded-[2rem] overflow-hidden shadow-2xl" align="end">

@@ -14,6 +14,7 @@ export interface UserProfile {
   avatar_url: string | null;
   phone: string | null;
   bio: string | null;
+  preferences?: any | null;
 }
 
 export function useUserRole() {

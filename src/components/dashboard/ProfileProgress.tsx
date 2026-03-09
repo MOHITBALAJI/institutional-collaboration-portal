@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -99,8 +100,9 @@ export function ProfileProgress() {
     const percent = Math.round((completed.length / profileItems.length) * 100);
 
     return (
-        <Card variant="glass" className="md:col-span-2">
-            <CardContent className="pt-6">
+        <Card variant="glass" className="border-primary/10 overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+            <CardContent className="pt-6 relative z-10">
                 <input
                     type="file"
                     ref={fileInputRef}
@@ -109,31 +111,36 @@ export function ProfileProgress() {
                     onChange={handleFileChange}
                 />
 
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 className="text-lg font-semibold mb-1">Profile Completion</h3>
-                        <p className="text-sm text-muted-foreground">
-                            {completed.length}/{profileItems.length} steps done — {percent < 100 ? "keep going!" : "🎉 All complete!"}
+                <div className="flex items-center justify-between mb-4">
+                    <div className="text-left">
+                        <h3 className="text-sm font-black font-display uppercase tracking-widest">Profile Completion</h3>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                            {completed.length}/{profileItems.length} steps done — keep going!
                         </p>
                     </div>
-                    <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center relative">
-                        <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
-                            <path
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none" stroke="hsl(217, 33%, 17%)" strokeWidth="3"
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center relative shrink-0">
+                        <svg viewBox="0 0 36 36" className="h-10 w-10 -rotate-90">
+                            <circle
+                                cx="18" cy="18" r="16"
+                                fill="none" stroke="currentColor" strokeWidth="3"
+                                className="text-white/5"
                             />
-                            <path
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none" stroke="hsl(262, 83%, 58%)" strokeWidth="3"
-                                strokeDasharray={`${percent}, 100`}
+                            <motion.circle
+                                cx="18" cy="18" r="16"
+                                fill="none" stroke="currentColor" strokeWidth="3"
+                                strokeDasharray="100"
+                                initial={{ strokeDashoffset: 100 }}
+                                animate={{ strokeDashoffset: 100 - percent }}
+                                transition={{ duration: 1, ease: "easeOut" }}
                                 strokeLinecap="round"
-                                className="transition-all duration-700"
+                                className="text-primary transition-all duration-700"
                             />
                         </svg>
-                        <span className="absolute text-base font-bold">{percent}%</span>
+                        <span className="absolute text-[10px] font-black">{percent}%</span>
                     </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+
+                <div className="space-y-2">
                     {profileItems.map(item => {
                         const done = completed.includes(item.key);
                         const isResume = item.key === "resume";
@@ -142,22 +149,24 @@ export function ProfileProgress() {
                                 key={item.key}
                                 onClick={() => toggle(item.key)}
                                 disabled={isResume && uploading}
-                                className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 text-left text-xs group
-                                    ${done ? "bg-success/5 text-success border border-success/10" : "bg-white/5 hover:bg-white/10 text-muted-foreground border border-white/5"}
+                                className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all duration-300 text-left group border
+                                    ${done
+                                        ? "bg-primary/5 text-primary/80 border-primary/20"
+                                        : "bg-white/5 hover:bg-white/10 text-muted-foreground border-white/5 hover:border-white/10"
+                                    }
                                 `}
                             >
                                 <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors
-                                    ${done ? "bg-success/10 text-success" : "bg-white/5 text-muted-foreground group-hover:text-primary"}
+                                    ${done ? "bg-primary/10 text-primary" : "bg-white/5 text-muted-foreground group-hover:text-primary"}
                                 `}>
                                     {isResume && uploading ? <Loader2 className="h-4 w-4 animate-spin" /> :
                                         <item.icon className="h-4 w-4" />
                                     }
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <span className={`block truncate font-bold ${done ? "line-through opacity-70" : ""}`}>{item.label}</span>
-                                    {done && <span className="text-[8px] font-black uppercase tracking-widest opacity-60">Verified</span>}
+                                    <span className={`block truncate text-[10px] font-bold uppercase tracking-tight ${done ? "opacity-60" : ""}`}>{item.label}</span>
                                 </div>
-                                {done && <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />}
+                                {done && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" />}
                             </button>
                         );
                     })}

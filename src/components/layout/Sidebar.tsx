@@ -133,7 +133,6 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
   const filteredGroups = navGroups
     .filter((group) => {
       if (!group.roles) return true;
-      if (loading) return true;
       return group.roles.includes(effectiveRole);
     })
     .map((group) => ({
@@ -144,7 +143,6 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
           seenPaths.add(item.href);
           return true;
         }
-        if (loading) return true;
         const hasRole = item.roles.includes(effectiveRole);
         if (hasRole && seenPaths.has(item.href)) return false;
         if (hasRole) seenPaths.add(item.href);
@@ -207,10 +205,10 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
           {!isCollapsed && (
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <Building2 className="h-5 w-5 text-primary-foreground" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary overflow-hidden">
+                <img src="/logo.png" alt="ICP Logo" className="h-full w-full object-cover" />
               </div>
-              <span className="font-display font-bold text-lg">ICP</span>
+              <span className="font-display font-bold text-lg text-sidebar-primary">ICP</span>
             </div>
           )}
           <Button
@@ -248,8 +246,10 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
             )}
           >
-            <LayoutDashboard className={cn("h-5 w-5 shrink-0", location.pathname === "/dashboard" && "text-sidebar-primary")} />
-            {!isCollapsed && <span className="flex-1">Dashboard</span>}
+            <div className="flex items-center gap-3 w-full min-w-0">
+              <LayoutDashboard className={cn("h-5 w-5 shrink-0", location.pathname === "/dashboard" && "text-sidebar-primary")} />
+              {!isCollapsed && <span className="flex-1 truncate">Dashboard</span>}
+            </div>
           </Link>
 
           {/* Grouped navigation */}
@@ -263,7 +263,7 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                 <button
                   onClick={() => !isCollapsed && toggleGroup(group.title)}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200",
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 min-w-0",
                     groupActive
                       ? "text-sidebar-primary"
                       : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80"
@@ -272,10 +272,10 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                   <group.icon className="h-4 w-4 shrink-0" />
                   {!isCollapsed && (
                     <>
-                      <span className="flex-1 text-left">{group.title}</span>
+                      <span className="flex-1 text-left truncate">{group.title}</span>
                       <ChevronDown
                         className={cn(
-                          "h-3.5 w-3.5 transition-transform duration-200",
+                          "h-3.5 w-3.5 shrink-0 transition-transform duration-200",
                           open && "rotate-180"
                         )}
                       />
@@ -299,7 +299,7 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                         to={item.href}
                         onClick={onMobileClose}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg py-2 text-sm font-medium transition-all duration-200",
+                          "flex items-center gap-3 rounded-lg py-2 text-sm font-medium transition-all duration-200 min-w-0",
                           isCollapsed ? "px-3" : "pl-10 pr-3",
                           isActive
                             ? "bg-sidebar-primary/10 text-sidebar-primary"
@@ -309,9 +309,9 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                         <item.icon className={cn("h-4 w-4 shrink-0", isActive && "text-sidebar-primary")} />
                         {!isCollapsed && (
                           <>
-                            <span className="flex-1">{item.title}</span>
+                            <span className="flex-1 truncate">{item.title}</span>
                             {item.badge && (
-                              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
+                              <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">
                                 {item.badge}
                               </span>
                             )}
@@ -336,8 +336,10 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
             )}
           >
-            <Settings className={cn("h-5 w-5 shrink-0", location.pathname === "/settings" && "text-sidebar-primary")} />
-            {!isCollapsed && <span className="flex-1">Settings</span>}
+            <div className="flex items-center gap-3 w-full min-w-0">
+              <Settings className={cn("h-5 w-5 shrink-0", location.pathname === "/settings" && "text-sidebar-primary")} />
+              {!isCollapsed && <span className="flex-1 truncate">Settings</span>}
+            </div>
           </Link>
         </nav>
 

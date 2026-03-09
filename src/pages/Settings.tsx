@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,17 +9,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { User, Bell, Shield, Palette, Globe, Save } from "lucide-react";
+import { User, Bell, Shield, Palette, Save, Loader2 } from "lucide-react";
+import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Settings() {
   const { toast } = useToast();
-  const [profile, setProfile] = useState({
-    full_name: "Dr. Priya Sharma",
-    email: "priya.sharma@college.edu",
-    phone: "+91 9876543210",
-    department: "Computer Science",
-    designation: "HOD & Professor",
-    bio: "Experienced academic with 15+ years in industry-academia collaboration.",
+  const { profile, loading, refetch } = useUserRole();
+  const [saving, setSaving] = useState(false);
+
+  const [profileData, setProfileData] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    department: "",
+    designation: "",
+    bio: "",
   });
 
   const [notifications, setNotifications] = useState({
@@ -29,13 +34,100 @@ export default function Settings() {
     push_all: true,
   });
 
-  const handleSaveProfile = () => {
-    toast({ title: "Profile Updated", description: "Your profile has been saved successfully." });
+  // Initialize state from profile
+  useEffect(() => {
+    if (profile) {
+      setProfileData({
+        full_name: profile.full_name || "",
+        email: profile.email || "",
+        phone: profile.phone || "",
+        department: profile.department || "",
+        designation: profile.designation || "",
+        bio: profile.bio || "",
+      });
+
+      if (profile.preferences?.notifications) {
+        setNotifications(profile.preferences.notifications);
+      }
+    }
+  }, [profile]);
+
+  // Realtime subscription
+  useEffect(() => {
+    if (!profile?.user_id) return;
+
+    const channel = supabase
+      .channel('public:profiles')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `user_id=eq.${profile.user_id}`
+      }, (payload) => {
+        console.log('Realtime profile update:', payload);
+        refetch();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.user_id, refetch]);
+
+  const handleSaveProfile = async () => {
+    if (!profile?.user_id) return;
+
+    try {
+      setSaving(true);
+      const { error } = await supabase
+        .from('profiles')
+        .update(profileData)
+        .eq('user_id', profile.user_id);
+
+      if (error) throw error;
+
+      toast({ title: "Profile Updated", description: "Your profile has been saved successfully." });
+    } catch (error: any) {
+      toast({ title: "Update Failed", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSaveNotifications = () => {
-    toast({ title: "Notifications Updated", description: "Your notification preferences have been saved." });
+  const handleSaveNotifications = async () => {
+    if (!profile?.user_id) return;
+
+    try {
+      setSaving(true);
+      const updatedPreferences = {
+        ...(profile.preferences || {}),
+        notifications
+      };
+
+      const { error } = await supabase
+        .from('profiles' as any)
+        .update({ preferences: updatedPreferences })
+        .eq('user_id', profile.user_id);
+
+      if (error) throw error;
+
+      toast({ title: "Notifications Updated", description: "Your notification preferences have been saved." });
+    } catch (error: any) {
+      toast({ title: "Update Failed", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading && !profile) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -65,30 +157,33 @@ export default function Settings() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Full Name</Label>
-                    <Input value={profile.full_name} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} />
+                    <Input value={profileData.full_name} onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <Label>Email</Label>
-                    <Input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
+                    <Input type="email" value={profileData.email} disabled className="bg-muted opacity-70" />
                   </div>
                   <div className="space-y-2">
                     <Label>Phone</Label>
-                    <Input value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+                    <Input value={profileData.phone} onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <Label>Department</Label>
-                    <Input value={profile.department} onChange={(e) => setProfile({ ...profile, department: e.target.value })} />
+                    <Input value={profileData.department} onChange={(e) => setProfileData({ ...profileData, department: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <Label>Designation</Label>
-                    <Input value={profile.designation} onChange={(e) => setProfile({ ...profile, designation: e.target.value })} />
+                    <Input value={profileData.designation} onChange={(e) => setProfileData({ ...profileData, designation: e.target.value })} />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label>Bio</Label>
-                  <Textarea value={profile.bio} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} rows={3} />
+                  <Textarea value={profileData.bio} onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })} rows={3} />
                 </div>
-                <Button variant="gradient" onClick={handleSaveProfile}><Save className="h-4 w-4 mr-2" />Save Changes</Button>
+                <Button variant="gradient" onClick={handleSaveProfile} disabled={saving}>
+                  {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                  Save Changes
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -118,7 +213,10 @@ export default function Settings() {
                     <Switch checked={notifications.push_all} onCheckedChange={(c) => setNotifications({ ...notifications, push_all: c })} />
                   </div>
                 </div>
-                <Button variant="gradient" onClick={handleSaveNotifications}><Save className="h-4 w-4 mr-2" />Save Preferences</Button>
+                <Button variant="gradient" onClick={handleSaveNotifications} disabled={saving}>
+                  {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                  Save Preferences
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -132,19 +230,14 @@ export default function Settings() {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Current Password</Label>
-                    <Input type="password" placeholder="••••••••" />
+                    <Label>Account Recovery</Label>
+                    <p className="text-sm text-muted-foreground">Password reset emails will be sent to your registered email address.</p>
                   </div>
-                  <div className="space-y-2">
-                    <Label>New Password</Label>
-                    <Input type="password" placeholder="••••••••" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Confirm New Password</Label>
-                    <Input type="password" placeholder="••••••••" />
-                  </div>
+                  <Button variant="outline" onClick={() => {
+                    supabase.auth.resetPasswordForEmail(profileData.email);
+                    toast({ title: "Reset Email Sent", description: "Standard recovery process initiated." });
+                  }}>Send Reset Link</Button>
                 </div>
-                <Button variant="gradient"><Save className="h-4 w-4 mr-2" />Update Password</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -153,27 +246,16 @@ export default function Settings() {
             <Card variant="glass">
               <CardHeader>
                 <CardTitle>Appearance</CardTitle>
-                <CardDescription>Customize the look and feel</CardDescription>
+                <CardDescription>Customize the look and feel (Coming Soon)</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label>Theme</Label>
-                  <Select defaultValue="dark">
+                  <Select defaultValue="dark" disabled>
                     <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="dark">Dark</SelectItem>
                       <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="system">System</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Language</Label>
-                  <Select defaultValue="en">
-                    <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="hi">Hindi</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

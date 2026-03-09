@@ -58,6 +58,9 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 backdrop-blur-xl px-4 lg:px-6">
       <div className="flex items-center gap-4">
         <MobileMenuButton onClick={onMobileMenuClick} />
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary overflow-hidden lg:hidden">
+          <img src="/logo.png" alt="ICP Logo" className="h-full w-full object-cover" />
+        </div>
         <GlobalSearch />
       </div>
 

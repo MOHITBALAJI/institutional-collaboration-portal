@@ -40,7 +40,7 @@ const sampleMentors: Mentor[] = [
 ];
 
 export default function Mentorship() {
-    const [mentors, setMentors] = useState<Mentor[]>(sampleMentors);
+    const [mentors, setMentors] = useState<Mentor[]>([]);
     const [loading, setLoading] = useState(true);
     const { user } = useUserRole();
     const { toast } = useToast();
@@ -48,6 +48,8 @@ export default function Mentorship() {
     const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
     const [bookingStep, setBookingStep] = useState(1);
+    const [selectedSlot, setSelectedSlot] = useState("");
+    const [studentEmail, setStudentEmail] = useState("");
 
     const filteredMentors = mentors.filter(m =>
         m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -55,15 +57,61 @@ export default function Mentorship() {
         m.expertise.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
-    // Fetch mentors from backend (mocking with profiles for now, ideally fetching users with role 'alumni' | 'faculty')
-    // Since we don't have a direct way to join roles easily in client-side query without views, 
-    // we will stick to sample data for display but implement the *Request* logic against real backend.
-
-    // Actually, let's try to fetch if possible, otherwise we keep sample data as fallback
     useEffect(() => {
-        // Implementation note: In a real app we'd have a 'mentors_view' 
-        // For now, we'll simulate loading
-        setTimeout(() => setLoading(false), 1000);
+        const fetchMentors = async () => {
+            try {
+                setLoading(true);
+                // Fetch alumni who are marked as mentors
+                const { data: alumniData, error: alumniError } = await supabase
+                    .from('alumni')
+                    .select('*')
+                    .eq('is_mentor', true);
+
+                if (alumniError) throw alumniError;
+
+                if (alumniData && alumniData.length > 0) {
+                    // Fetch profiles for these alumni to get user_id and names/avatars
+                    const userIds = alumniData.map(a => a.user_id).filter(id => id !== null);
+
+                    const { data: profilesData, error: profilesError } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .in('user_id', userIds);
+
+                    if (profilesError) throw profilesError;
+
+                    const mergedMentors: Mentor[] = alumniData.map(alumnus => {
+                        const profile = profilesData?.find(p => p.user_id === alumnus.user_id);
+                        return {
+                            id: alumnus.user_id || alumnus.id, // Use user_id for booking
+                            name: alumnus.full_name || profile?.full_name || "Unknown Mentor",
+                            role: alumnus.current_position || "Mentor",
+                            company: alumnus.current_company || "Industry",
+                            department: alumnus.department || "",
+                            gradYear: alumnus.graduation_year || 0,
+                            expertise: alumnus.mentorship_areas || [],
+                            rating: 4.8, // Default since we don't have review system yet
+                            reviews: 0,
+                            avatar: profile?.avatar_url || "",
+                            linkedin: alumnus.linkedin_url || "#",
+                            availability: alumnus.availability || "Contact for details"
+                        };
+                    });
+                    setMentors(mergedMentors);
+                } else {
+                    // Fallback to sample data if no mentors in DB
+                    setMentors(sampleMentors.map(m => ({ ...m, id: "00000000-0000-0000-0000-00000000000" + m.id })));
+                }
+            } catch (err: any) {
+                console.error("Error fetching mentors:", err);
+                // Fallback to sample data with valid UUIDs
+                setMentors(sampleMentors.map(m => ({ ...m, id: "00000000-0000-0000-0000-00000000000" + m.id })));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMentors();
     }, []);
 
     const handleBookSession = async (mentor: Mentor) => {
@@ -73,42 +121,130 @@ export default function Mentorship() {
         }
         setSelectedMentor(mentor);
         setBookingStep(1);
+        setSelectedSlot("");
+        setStudentEmail(user.email || "");
         setIsBookingOpen(true);
     };
 
     const [errorState, setErrorState] = useState<{ isError: boolean; message: string }>({ isError: false, message: "" });
+
+    // Helper to send actual email via EmailJS REST API
+    const sendEmailNotification = async (details: {
+        to_email: string;
+        student_name: string;
+        student_email: string;
+        mentor_name: string;
+        slot: string;
+    }) => {
+        try {
+            // NOTE: You need to replace these with your actual EmailJS IDs
+            const SERVICE_ID = "service_default"; // Replace with your Service ID
+            const TEMPLATE_ID = "template_mentorship"; // Replace with your Template ID
+            const PUBLIC_KEY = "your_public_key"; // Replace with your Public Key
+
+            const data = {
+                service_id: SERVICE_ID,
+                template_id: TEMPLATE_ID,
+                user_id: PUBLIC_KEY,
+                template_params: {
+                    to_email: details.to_email,
+                    student_name: details.student_name,
+                    student_email: details.student_email,
+                    mentor_name: details.mentor_name,
+                    booking_slot: details.slot,
+                    admin_email: "mohitbalaji2005@gmail.com"
+                }
+            };
+
+            const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.text();
+                console.error("EmailJS Error:", errorData);
+            } else {
+                console.log("Email sent successfully to", details.to_email);
+            }
+        } catch (error) {
+            console.error("Failed to send email:", error);
+        }
+    };
 
     const confirmBooking = async () => {
         if (!user || !selectedMentor) return;
 
         try {
             setErrorState({ isError: false, message: "" });
-            const { error } = await (supabase
+
+            // Log for debugging
+            console.log("Booking for:", {
+                student_id: user.id,
+                mentor_id: selectedMentor.id,
+                status: 'pending'
+            });
+
+            // Handle Demo Mentors (IDs starting with 0000...)
+            if (selectedMentor.id.startsWith("00000000-0000-0000-0000-00000000000")) {
+                // Simulate success for demo purposes
+                await new Promise(resolve => setTimeout(resolve, 800)); // Slight delay for realism
+                toast({
+                    title: "Demo Booking Success!",
+                    description: `Your mentorship request to ${selectedMentor.name} has been simulated successfully. To record a real session, please connect with an alumni-verified mentor.`,
+                });
+                setIsBookingOpen(false);
+                setBookingStep(1);
+                return;
+            }
+
+            const { error } = await supabase
                 .from("mentorship_requests" as any)
                 .insert({
                     student_id: user.id,
                     mentor_id: selectedMentor.id,
                     status: 'pending',
                     message: "General Guidance"
-                } as any));
-
+                });
 
             if (error) {
-                // Check for schema/missing table error
-                if (error.message?.includes("schema cache") || error.code === "42P01") {
-                    setErrorState({
-                        isError: true,
-                        message: "The automated booking system is being updated by the administrator. For now, please connect with the mentor directly via LinkedIn to schedule your session."
-                    });
-                    return;
+                console.error("Supabase Error:", error);
+
+                // Check for foreign key violation (23503) or invalid UUID (22P02)
+                if (error.code === '23503' || error.code === '22P02') {
+                    throw new Error("This profile is not yet fully linked to the production database. Please try another mentor or check back later.");
                 }
                 throw error;
             }
 
-            setBookingStep(2);
+            // Send actual email notification
+            await sendEmailNotification({
+                to_email: studentEmail,
+                student_name: user.email?.split('@')[0] || "Student",
+                student_email: studentEmail,
+                mentor_name: selectedMentor.name,
+                slot: selectedSlot
+            });
+
+            // Also notify admin
+            await sendEmailNotification({
+                to_email: "mohitbalaji2005@gmail.com",
+                student_name: user.email?.split('@')[0] || "Student",
+                student_email: studentEmail,
+                mentor_name: selectedMentor.name,
+                slot: selectedSlot
+            });
+
+            setBookingStep(3);
         } catch (err: any) {
             toast({ title: "Error", description: err.message, variant: "destructive" });
         }
+    };
+
+    const handleSlotSelect = (slot: string) => {
+        setSelectedSlot(slot);
+        setBookingStep(2);
     };
 
     return (
@@ -269,10 +405,10 @@ export default function Mentorship() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <p className="text-sm font-semibold">Available Slots</p>
+                                        <p className="text-sm font-semibold text-left">Available Slots</p>
                                         <div className="grid grid-cols-2 gap-2">
                                             {["Tomorrow, 6:00 PM", "Tomorrow, 7:00 PM", "Saturday, 11:00 AM", "Sunday, 4:00 PM"].map((slot) => (
-                                                <Button key={slot} variant="outline" className="text-xs" onClick={confirmBooking}>
+                                                <Button key={slot} variant="outline" className="text-xs" onClick={() => handleSlotSelect(slot)}>
                                                     {slot}
                                                 </Button>
                                             ))}
@@ -283,16 +419,52 @@ export default function Mentorship() {
                                     <Button variant="ghost" onClick={() => setIsBookingOpen(false)}>Cancel</Button>
                                 </DialogFooter>
                             </>
+                        ) : bookingStep === 2 ? (
+                            <>
+                                <DialogHeader>
+                                    <DialogTitle>Confirm Details</DialogTitle>
+                                    <DialogDescription>Enter your email to receive session details</DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4 space-y-4 text-left">
+                                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg space-y-1">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-primary">Selected Slot</p>
+                                        <p className="text-sm font-bold">{selectedSlot}</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-widest">Your Email ID</label>
+                                        <Input
+                                            type="email"
+                                            placeholder="Enter your email"
+                                            value={studentEmail}
+                                            onChange={(e) => setStudentEmail(e.target.value)}
+                                            className="bg-muted/20"
+                                        />
+                                    </div>
+                                </div>
+                                <DialogFooter className="gap-2 sm:gap-0">
+                                    <Button variant="ghost" onClick={() => setBookingStep(1)}>Back</Button>
+                                    <Button variant="gradient" disabled={!studentEmail} onClick={confirmBooking}>
+                                        Confirm Booking
+                                    </Button>
+                                </DialogFooter>
+                            </>
                         ) : (
-                            <div className="text-center py-6 space-y-4">
-                                <div className="mx-auto h-16 w-16 rounded-full bg-success/20 flex items-center justify-center text-success">
-                                    <CheckCircle2 className="h-8 w-8" />
+                            <div className="text-center py-6 space-y-6">
+                                <div className="mx-auto h-20 w-20 rounded-full bg-success/20 flex items-center justify-center text-success animate-bounce-in">
+                                    <CheckCircle2 className="h-10 w-10" />
                                 </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-xl font-bold">Request Sent!</h3>
-                                    <p className="text-sm text-muted-foreground">Your mentorship request has been sent to {selectedMentor?.name}. You'll be notified once they accept.</p>
+                                <div className="space-y-2">
+                                    <h3 className="text-2xl font-black font-display tracking-tight">Request Sent!</h3>
+                                    <p className="text-sm text-muted-foreground leading-relaxed px-4">
+                                        Your session for <span className="text-foreground font-bold">{selectedSlot}</span> has been booked.
+                                        Confirmation details have been sent to <span className="text-primary font-bold">{studentEmail}</span> and <span className="text-primary font-bold">mohitbalaji2005@gmail.com</span>.
+                                    </p>
                                 </div>
-                                <Button variant="gradient" className="w-full" onClick={() => setIsBookingOpen(false)}>Back to Hub</Button>
+                                <div className="bg-muted/30 p-4 rounded-2xl mx-4">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Status</p>
+                                    <Badge variant="outline" className="bg-success/10 text-success border-success/20 font-black uppercase tracking-[0.2em]">Pending Approval</Badge>
+                                </div>
+                                <Button variant="gradient" className="w-full max-w-[200px]" onClick={() => setIsBookingOpen(false)}>Back to Hub</Button>
                             </div>
                         )}
                     </DialogContent>

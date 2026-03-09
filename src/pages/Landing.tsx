@@ -148,7 +148,7 @@ export default function Landing() {
   const [heroText, setHeroText] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const statsRef = useRef<HTMLElement>(null);
-  const fullText = "Connecting Minds. Building Futures.";
+  const fullText = "Institutional Collaboration Portal";
 
   // Typewriter effect
   useEffect(() => {

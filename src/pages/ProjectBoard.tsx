@@ -80,8 +80,7 @@ const techGlows: Record<string, string> = {
     "Blockchain": "text-emerald-400"
 };
 
-import { ProjectPresence, HuddleBubble } from "@/components/projects/ProjectPresence";
-import { Video } from "lucide-react";
+import { ProjectPresence } from "@/components/projects/ProjectPresence";
 
 export default function ProjectBoard() {
     const [projects, setProjects] = useState(sampleProjects);
@@ -91,7 +90,6 @@ export default function ProjectBoard() {
     const [viewMode, setViewMode] = useState<"grid" | "kanban">("grid");
     const [sel, setSel] = useState<Project | null>(null);
     const [createOpen, setCreateOpen] = useState(false);
-    const [huddleOpen, setHuddleOpen] = useState(false);
     const [np, setNp] = useState({ title: "", desc: "", tech: "", cat: "web", max: "4", dead: "", gh: "" });
 
     const filtered = projects.filter(p => {
@@ -129,7 +127,6 @@ export default function ProjectBoard() {
     return (
         <DashboardLayout>
             <ProjectPresence />
-            <HuddleBubble isOpen={huddleOpen} onClose={() => setHuddleOpen(false)} />
 
             <div className="space-y-8 animate-fade-in relative z-10">
                 {/* Header & New Project */}
@@ -151,15 +148,6 @@ export default function ProjectBoard() {
                             </p>
                         </div>
                         <div className="flex gap-4">
-                            <Button
-                                variant="outline"
-                                size="xl"
-                                className="rounded-xl border-white/10 hover:bg-white/5"
-                                onClick={() => setHuddleOpen(true)}
-                            >
-                                <Video className="mr-2 h-5 w-5" />
-                                Start Huddle
-                            </Button>
                             <Button variant="gradient" size="xl" className="shadow-xl shadow-primary/20 group" onClick={() => setCreateOpen(true)}>
                                 <Plus className="mr-2 h-5 w-5 transition-transform group-hover:rotate-90" />
                                 Launch Project
