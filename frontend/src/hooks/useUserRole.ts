@@ -1,21 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Database, Json } from "@/integrations/supabase/types";
 import { useAuth } from "./useAuth";
 
 export type AppRole = "admin" | "industry_partner" | "faculty" | "student" | "alumni";
 
-export interface UserProfile {
-  id: string;
-  user_id: string;
-  full_name: string | null;
-  email: string | null;
-  department: string | null;
-  designation: string | null;
-  avatar_url: string | null;
-  phone: string | null;
-  bio: string | null;
-  preferences?: any | null;
-}
+export type UserProfile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export function useUserRole() {
   const { user, loading: authLoading } = useAuth();

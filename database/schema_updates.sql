@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   avatar_url text,
   phone text,
   bio text,
+  preferences jsonb DEFAULT '{}'::jsonb,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );

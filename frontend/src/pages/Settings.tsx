@@ -12,6 +12,14 @@ import { useToast } from "@/hooks/use-toast";
 import { User, Bell, Shield, Palette, Save, Loader2 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
+
+interface NotificationPreferences {
+  email_mou: boolean;
+  email_internship: boolean;
+  email_events: boolean;
+  push_all: boolean;
+}
 
 export default function Settings() {
   const { toast } = useToast();
@@ -27,7 +35,7 @@ export default function Settings() {
     bio: "",
   });
 
-  const [notifications, setNotifications] = useState({
+  const [notifications, setNotifications] = useState<NotificationPreferences>({
     email_mou: true,
     email_internship: true,
     email_events: false,
@@ -46,8 +54,11 @@ export default function Settings() {
         bio: profile.bio || "",
       });
 
-      if (profile.preferences?.notifications) {
-        setNotifications(profile.preferences.notifications);
+      if (profile.preferences && typeof profile.preferences === 'object') {
+        const prefs = profile.preferences as Record<string, any>;
+        if (prefs.notifications) {
+          setNotifications(prefs.notifications);
+        }
       }
     }
   }, [profile]);
@@ -75,7 +86,10 @@ export default function Settings() {
   }, [profile?.user_id, refetch]);
 
   const handleSaveProfile = async () => {
-    if (!profile?.user_id) return;
+    if (!profile?.user_id) {
+      toast({ title: "Update Failed", description: "User profile not found. Please try logging in again.", variant: "destructive" });
+      return;
+    }
 
     try {
       setSaving(true);
@@ -95,18 +109,22 @@ export default function Settings() {
   };
 
   const handleSaveNotifications = async () => {
-    if (!profile?.user_id) return;
+    if (!profile?.user_id) {
+      toast({ title: "Update Failed", description: "User profile not found. Please try logging in again.", variant: "destructive" });
+      return;
+    }
 
     try {
       setSaving(true);
+      const currentPrefs = (profile.preferences as Record<string, any>) || {};
       const updatedPreferences = {
-        ...(profile.preferences || {}),
+        ...currentPrefs,
         notifications
       };
 
       const { error } = await supabase
-        .from('profiles' as any)
-        .update({ preferences: updatedPreferences })
+        .from('profiles')
+        .update({ preferences: updatedPreferences as any as Json })
         .eq('user_id', profile.user_id);
 
       if (error) throw error;
