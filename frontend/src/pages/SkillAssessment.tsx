@@ -692,10 +692,10 @@ export default function SkillAssessment() {
                         <div className="overflow-x-auto pb-4 px-2">
                             <div
                                 ref={certificateRef}
-                                className="relative border-[8px] sm:border-[16px] border-[#c5a059] bg-[#fdfbf7] p-1 shadow-2xl aspect-[1.4/1] w-[600px] sm:w-full mx-auto flex flex-col min-h-[450px] sm:min-h-[580px]"
+                                className="relative border-[8px] sm:border-[16px] border-[#c5a059] bg-[#fdfbf7] p-1 shadow-2xl w-[600px] sm:w-full mx-auto flex flex-col min-h-[450px] sm:min-h-[580px]"
                             >
                                 {/* Inner Border Design */}
-                                <div className="border-[1px] sm:border-[2px] border-[#c5a059] m-0.5 sm:m-1 flex-grow flex flex-col items-center justify-center p-4 sm:p-12 relative">
+                                <div className="border-[1px] sm:border-[2px] border-[#c5a059] m-0.5 sm:m-1 flex-grow flex flex-col items-center justify-center p-4 sm:p-8 relative">
                                     {/* Corner Ornaments */}
                                     <div className="absolute top-2 left-2 sm:top-4 sm:left-4 h-6 w-6 sm:h-12 sm:w-12 border-t-2 sm:border-t-4 border-l-2 sm:border-l-4 border-[#c5a059]" />
                                     <div className="absolute top-2 right-2 sm:top-4 sm:right-4 h-6 w-6 sm:h-12 sm:w-12 border-t-2 sm:border-t-4 border-r-2 sm:border-r-4 border-[#c5a059]" />

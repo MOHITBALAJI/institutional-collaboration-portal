@@ -17,13 +17,22 @@ import {
   Bell,
   GraduationCap,
   Zap,
-  AlertCircle
+  AlertCircle,
+  IndianRupee,
+  Landmark,
+  Compass,
+  Server,
+  Award
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useMoUs } from "@/hooks/useMoUs";
 import { useInternships } from "@/hooks/useInternships";
 import { useIndustryPartners } from "@/hooks/useIndustryPartners";
 import { useEvents } from "@/hooks/useEvents";
+import { useFinances } from "@/hooks/useFinances";
+import { useCompliance } from "@/hooks/useCompliance";
+import { useFacilities } from "@/hooks/useFacilities";
+import { useAlumni } from "@/hooks/useAlumni";
 import { CampusPulse } from "./CampusPulse";
 import { ProgressRing } from "./ProgressRing";
 
@@ -57,6 +66,10 @@ export function AdminDashboard() {
   const { internships } = useInternships();
   const { partners } = useIndustryPartners();
   const { events } = useEvents();
+  const { finances } = useFinances();
+  const { compliance } = useCompliance();
+  const { facilities } = useFacilities();
+  const { alumni } = useAlumni();
 
   const activeMous = mous.filter(m => m.status === 'active');
   const activeInternships = internships.filter(i => i.status === 'open');
@@ -140,6 +153,33 @@ export function AdminDashboard() {
               ))}
             </CardContent>
           </Card>
+
+          <Card variant="glass" className="border-warning/10">
+            <CardHeader className="pb-2 text-left">
+              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                <Landmark className="h-4 w-4 text-warning" /> Accreditation Readiness
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-2 text-left">
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                  <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">Faculty/Student</p>
+                  <p className="text-lg font-black text-white">{compliance?.facultyStudentRatio}</p>
+                </div>
+                <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                  <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">PhD Faculty</p>
+                  <p className="text-lg font-black text-warning">{compliance?.phdPercentage}%</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                  <span>NBA Readiness</span>
+                  <span className="text-success">{compliance?.nbaReadinessScore}%</span>
+                </div>
+                <Progress value={compliance?.nbaReadinessScore || 0} className="h-1.5 [&>div]:bg-success" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right Column: Performance & Lifecycle (8 cols) */}
@@ -147,8 +187,53 @@ export function AdminDashboard() {
           <SystemPerformanceNexus />
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            <div className="md:col-span-7">
+            <div className="md:col-span-7 space-y-6">
+              <Card variant="glass" className="border-success/10 bg-success/5 overflow-hidden relative">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(var(--success-rgb),0.1),transparent)]" />
+                <CardHeader className="pb-2 text-left">
+                  <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                    <IndianRupee className="h-4 w-4 text-success" /> Financial Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-left">
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Fee Collection</p>
+                      <p className="text-2xl font-black text-success mt-1">{finances?.feeCollection.percentage}%</p>
+                      <Progress value={finances?.feeCollection.percentage || 0} className="h-1 mt-2 [&>div]:bg-success" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Pending Dues</p>
+                      <p className="text-xl font-black text-destructive mt-1">₹{(finances?.pendingDues || 0) / 100000}L</p>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-black/20 border border-white/5 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-muted-foreground uppercase">Total Grants Received</span>
+                    <span className="text-lg font-black text-primary">₹{(finances?.grantsReceived || 0) / 10000000} Cr</span>
+                  </div>
+                </CardContent>
+              </Card>
+
               <CampusPulse />
+
+              <Card variant="glass" className="border-accent/10">
+                <CardHeader className="pb-2 text-left">
+                  <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                    <Award className="h-4 w-4 text-accent" /> Alumni Engagement
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-4 p-3 bg-white/5 rounded-2xl border border-white/5 text-left">
+                    <div className="h-10 w-10 bg-accent/20 rounded-xl flex items-center justify-center text-accent shrink-0">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider">{alumni?.length || 0} Registered Alumni</h4>
+                      <p className="text-[10px] text-muted-foreground">Growing community network</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
             <div className="md:col-span-5 space-y-6">
               <Card variant="glass" className="border-primary/10">
@@ -187,6 +272,32 @@ export function AdminDashboard() {
                     <div className="w-full h-1 bg-white/5 rounded-full mt-4 overflow-hidden">
                       <div className="h-full bg-success w-[99.8%]" />
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card variant="glass" className="border-primary/10">
+                <CardHeader className="pb-2 text-left">
+                  <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                    <Server className="h-4 w-4 text-primary" /> Campus Infrastructure
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2 text-left">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                      <span>Hostel Occupancy</span>
+                      <span className="text-primary">{facilities?.hostelOccupancy.percentage}%</span>
+                    </div>
+                    <Progress value={facilities?.hostelOccupancy.percentage || 0} className="h-1.5 [&>div]:bg-primary" />
+                  </div>
+                  <div className="space-y-2 text-left">
+                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                      <span>Wi-Fi Load ({facilities?.wifiLoad.currentTbps} Tbps)</span>
+                      <span className={facilities?.wifiLoad.percentage! > 80 ? 'text-destructive' : 'text-success'}>
+                        {facilities?.wifiLoad.percentage}%
+                      </span>
+                    </div>
+                    <Progress value={facilities?.wifiLoad.percentage || 0} className={`h-1.5 ${facilities?.wifiLoad.percentage! > 80 ? '[&>div]:bg-destructive' : '[&>div]:bg-success'}`} />
                   </div>
                 </CardContent>
               </Card>

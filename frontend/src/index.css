@@ -148,6 +148,10 @@
     text-shadow: 0 0 10px hsl(var(--primary) / 0.6), 0 0 30px hsl(var(--primary) / 0.3), 0 0 60px hsl(var(--primary) / 0.15);
   }
 
+  .light .neon-text {
+    text-shadow: 0 2px 10px hsl(var(--primary) / 0.15);
+  }
+
   .glass-card {
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);

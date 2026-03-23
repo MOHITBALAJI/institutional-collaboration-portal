@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
 import { cn } from "@/lib/utils";
+import { io, Socket } from "socket.io-client";
 
 interface Presence {
     id: string;
@@ -18,14 +19,15 @@ interface Presence {
     color: string;
 }
 
+const BACKEND_URL = "http://localhost:5000";
+
 export const NeuralCanvas = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const socketRef = useRef<Socket | null>(null);
     const [isDrawing, setIsDrawing] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
     const [tool, setTool] = useState<'pencil' | 'eraser'>('pencil');
-    const [presences, setPresences] = useState<Presence[]>([
-        { id: '1', name: 'Dr. Sarah (Mentor)', x: 100, y: 100, color: '#00f2ff' },
-        { id: '2', name: 'Alex K. (Industry)', x: 400, y: 300, color: '#7000ff' }
-    ]);
+    const [presences, setPresences] = useState<Presence[]>([]);
     const { playClick, playSuccess } = useSound();
 
     useEffect(() => {
@@ -34,14 +36,52 @@ export const NeuralCanvas = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        // Initialize Socket
+        socketRef.current = io(BACKEND_URL);
+
+        socketRef.current.on('connect', () => {
+            setIsConnected(true);
+            playSuccess();
+        });
+
+        socketRef.current.on('disconnect', () => {
+            setIsConnected(false);
+        });
+
+        socketRef.current.on('draw', (data: any) => {
+            const { x, y, prevX, prevY, tool: remoteTool } = data;
+            ctx.beginPath();
+            ctx.strokeStyle = remoteTool === 'pencil' ? '#00f2ff' : '#000';
+            ctx.lineWidth = remoteTool === 'pencil' ? 2 : 20;
+            ctx.globalCompositeOperation = remoteTool === 'pencil' ? 'source-over' : 'destination-out';
+            ctx.moveTo(prevX, prevY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        });
+
+        socketRef.current.on('presence', (data: Presence) => {
+            setPresences(prev => {
+                const existing = prev.find(p => p.id === data.id);
+                if (existing) {
+                    return prev.map(p => p.id === data.id ? data : p);
+                }
+                return [...prev, data];
+            });
+        });
+
+        socketRef.current.on('user_disconnected', (id: string) => {
+            setPresences(prev => prev.filter(p => p.id !== id));
+        });
+
         ctx.strokeStyle = '#00f2ff';
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
 
-        // Background grid for that holographic feel
+        // Background grid
         const drawGrid = () => {
             ctx.strokeStyle = 'rgba(0, 242, 255, 0.05)';
             ctx.lineWidth = 1;
+            ctx.globalCompositeOperation = 'source-over';
             for (let i = 0; i < canvas.width; i += 30) {
                 ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
@@ -49,50 +89,61 @@ export const NeuralCanvas = () => {
         };
         drawGrid();
 
-        // Simulate moving cursors
-        const interval = setInterval(() => {
-            setPresences(prev => prev.map(p => ({
-                ...p,
-                x: p.x + (Math.random() - 0.5) * 10,
-                y: p.y + (Math.random() - 0.5) * 10
-            })));
-        }, 100);
-
-        return () => clearInterval(interval);
+        return () => {
+            socketRef.current?.disconnect();
+        };
     }, []);
+
+    const lastPos = useRef({ x: 0, y: 0 });
 
     const startDrawing = (e: React.MouseEvent) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        ctx.beginPath();
-        ctx.moveTo(x, y);
+        lastPos.current = { x, y };
         setIsDrawing(true);
     };
 
     const draw = (e: React.MouseEvent) => {
-        if (!isDrawing) return;
         const canvas = canvasRef.current;
         if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+
+        // Send presence
+        socketRef.current?.emit('presence', {
+            name: 'User', 
+            x,
+            y,
+            color: '#00f2ff'
+        });
+
+        if (!isDrawing) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
         ctx.strokeStyle = tool === 'pencil' ? '#00f2ff' : '#000';
         ctx.lineWidth = tool === 'pencil' ? 2 : 20;
         ctx.globalCompositeOperation = tool === 'pencil' ? 'source-over' : 'destination-out';
 
+        ctx.beginPath();
+        ctx.moveTo(lastPos.current.x, lastPos.current.y);
         ctx.lineTo(x, y);
         ctx.stroke();
+
+        socketRef.current?.emit('draw', {
+            x,
+            y,
+            prevX: lastPos.current.x,
+            prevY: lastPos.current.y,
+            tool
+        });
+
+        lastPos.current = { x, y };
     };
 
     const stopDrawing = () => setIsDrawing(false);
@@ -130,9 +181,15 @@ export const NeuralCanvas = () => {
                                 {p.name[0]}
                             </div>
                         ))}
-                        <div className="h-6 w-6 rounded-full bg-white/10 border-2 border-black flex items-center justify-center text-[10px] font-bold">+1</div>
                     </div>
-                    <Badge className="bg-success/20 text-success border-success/30 text-[8px] font-black uppercase tracking-widest">Live Sync Ready</Badge>
+                    <Badge className={cn(
+                        "text-[8px] font-black uppercase tracking-widest",
+                        isConnected 
+                            ? "bg-success/20 text-success border-success/30" 
+                            : "bg-destructive/20 text-destructive border-destructive/30 animate-pulse"
+                    )}>
+                        {isConnected ? "Live Sync Active" : "Uplink Offline"}
+                    </Badge>
                 </div>
             </CardHeader>
             <CardContent className="p-0 relative bg-[radial-gradient(circle_at_center,rgba(0,242,255,0.05),transparent)]">

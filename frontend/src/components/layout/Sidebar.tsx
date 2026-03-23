@@ -27,6 +27,7 @@ import {
   FileUp,
   MessageSquare,
   Brain,
+  Lightbulb,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,10 +92,11 @@ const navGroups: NavGroup[] = [
   {
     title: "Academic Hub",
     icon: GraduationCap,
-    roles: ["student", "faculty", "admin"],
+    roles: ["student", "faculty", "admin", "industry_partner"],
     items: [
       { title: "Project Board", href: "/projects", icon: FolderKanban },
       { title: "Skill Assessment", href: "/skill-assessment", icon: Brain },
+      { title: "Research Hub", href: "/research", icon: Lightbulb, roles: ["student", "faculty", "admin", "industry_partner"] }
     ],
   },
 

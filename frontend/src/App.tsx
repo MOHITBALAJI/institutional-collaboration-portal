@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
@@ -28,10 +29,21 @@ import DiscussionForum from "@/pages/DiscussionForum";
 import BulkImport from "@/pages/BulkImport";
 import ApprovalWorkflows from "@/pages/ApprovalWorkflows";
 import SkillAssessment from "@/pages/SkillAssessment";
+import ResearchHub from "@/pages/ResearchHub";
 
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -39,6 +51,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
@@ -70,7 +83,7 @@ const App = () => (
           <Route
             path="/alumni"
             element={
-              <ProtectedRoute allowedRoles={["student", "alumni", "admin"]}>
+              <ProtectedRoute allowedRoles={["student", "faculty", "alumni", "admin"]}>
                 <AlumniNetwork />
               </ProtectedRoute>
             }
@@ -187,6 +200,14 @@ const App = () => (
             element={
               <ProtectedRoute allowedRoles={["student", "faculty", "admin"]}>
                 <SkillAssessment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/research"
+            element={
+              <ProtectedRoute allowedRoles={["student", "faculty", "admin", "industry_partner"]}>
+                <ResearchHub />
               </ProtectedRoute>
             }
           />

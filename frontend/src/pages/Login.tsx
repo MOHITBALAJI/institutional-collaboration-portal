@@ -22,10 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 
 const roles = [
   { id: "admin", label: "Admin", icon: Shield, dbRole: "admin" },
-  { id: "industry_partner", label: "Industry", icon: Building2, dbRole: "industry_partner" },
   { id: "faculty", label: "Faculty", icon: GraduationCap, dbRole: "faculty" },
   { id: "student", label: "Student", icon: Users, dbRole: "student" },
-  { id: "alumni", label: "Alumni", icon: Briefcase, dbRole: "alumni" },
 ];
 
 export default function Login() {
@@ -38,6 +36,40 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Helper to get credentials for roles
+  const getCredentials = (roleId: string) => {
+    switch (roleId) {
+      case "admin":
+        return { email: "mohitbalaji2005@gmail.com", password: "12345678" };
+      case "faculty":
+        return { email: "mohitmjp04@gmail.com", password: "12345678" };
+      case "student":
+        return { email: "mohitbalaji.ec23@bitsathy.ac.in", password: "12345678" };
+      default:
+        return null;
+    }
+  };
+
+  // Pre-fill credentials when role changes
+  useState(() => {
+    const creds = getCredentials(selectedRole);
+    if (creds && isLogin) {
+      setEmail(creds.email);
+      setPassword(creds.password);
+    }
+  });
+
+  const handleRoleSelect = (roleId: string) => {
+    setSelectedRole(roleId);
+    if (isLogin) {
+      const creds = getCredentials(roleId);
+      if (creds) {
+        setEmail(creds.email);
+        setPassword(creds.password);
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,31 +218,29 @@ export default function Login() {
           
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Role Selection - Only show for signup */}
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label>Select Your Role</Label>
-                  <div className="grid grid-cols-5 gap-2">
-                    {roles.map((role) => (
-                      <button
-                        key={role.id}
-                        type="button"
-                        onClick={() => setSelectedRole(role.id)}
-                        className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${
-                          selectedRole === role.id
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border hover:border-primary/50 hover:bg-secondary/50"
-                        }`}
-                      >
-                        <role.icon className="h-5 w-5" />
-                        <span className="text-[10px] font-medium text-center leading-tight">
-                          {role.label}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+              {/* Role Selection */}
+              <div className="space-y-2">
+                <Label>Select Your Role</Label>
+                <div className="grid grid-cols-3 gap-4">
+                  {roles.map((role) => (
+                    <button
+                      key={role.id}
+                      type="button"
+                      onClick={() => handleRoleSelect(role.id)}
+                      className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all ${
+                        selectedRole === role.id
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50 hover:bg-secondary/50"
+                      }`}
+                    >
+                      <role.icon className="h-5 w-5" />
+                      <span className="text-[10px] font-medium text-center leading-tight">
+                        {role.label}
+                      </span>
+                    </button>
+                  ))}
                 </div>
-              )}
+              </div>
 
               {/* Form Fields */}
               <div className="space-y-4">

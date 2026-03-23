@@ -23,6 +23,11 @@ import { motion } from "framer-motion";
 
 import { useMoUs } from "@/hooks/useMoUs";
 import { useEvents } from "@/hooks/useEvents";
+import { useStudents } from "@/hooks/useStudents";
+import { useSchedule } from "@/hooks/useSchedule";
+import { useExternalResearch } from "@/hooks/useExternalResearch";
+import { useHR } from "@/hooks/useHR";
+import { AlertCircle, Clock as ClockIcon, CalendarClock, Plane, Users as UsersIcon } from "lucide-react";
 
 // Animated progress ring for research
 function ResearchRing({ value, label }: { value: number; label: string }) {
@@ -54,6 +59,10 @@ export function FacultyDashboard() {
   const projects: any[] = [];
   const { mous } = useMoUs();
   const { events } = useEvents();
+  const { mentees } = useStudents();
+  const { schedule } = useSchedule();
+  const { hrData } = useHR();
+  const { data: researchData } = useExternalResearch();
 
   const activeProjects = projects.filter((p: any) => p.status === 'in_progress' || p.status === 'approved');
   const upcomingEvents = events.filter(e => e.status === 'upcoming').slice(0, 3);
@@ -154,11 +163,39 @@ export function FacultyDashboard() {
               </Button>
             </CardContent>
           </Card>
+
+          <Card variant="glass" className="border-white/5">
+            <CardHeader className="pb-2 text-left">
+              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                <Plane className="h-4 w-4 text-primary" /> Leave Balance
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-left">
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { label: "Casual", val: hrData?.leaveBalance?.casual || 0, color: "text-primary", bg: "bg-primary/10" },
+                  { label: "Earned", val: hrData?.leaveBalance?.earned || 0, color: "text-success", bg: "bg-success/10" },
+                  { label: "Medical", val: hrData?.leaveBalance?.medical || 0, color: "text-warning", bg: "bg-warning/10" },
+                ].map((leave) => (
+                  <div key={leave.label} className={`p-2 rounded-xl border border-white/5 flex flex-col items-center ${leave.bg}`}>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">{leave.label}</span>
+                    <span className={`text-xl font-black font-display ${leave.color}`}>{leave.val}</span>
+                  </div>
+                ))}
+              </div>
+              {hrData?.pendingApprovals ? (
+                <div className="flex items-center gap-2 text-[11px] p-2 bg-warning/10 text-warning rounded-lg font-bold">
+                  <AlertCircle className="h-3 w-3" />
+                  {hrData.pendingApprovals} Leave requests pending approval
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right Column: Main Content Area (8 cols) */}
         <div className="lg:col-span-8 space-y-6">
-          <ResearchIntelligenceHub />
+          <ResearchIntelligenceHub data={researchData} />
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* Portfolio (7 cols) */}
@@ -196,6 +233,32 @@ export function FacultyDashboard() {
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">No active projects</p>
                       </div>
                     )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card variant="glass" className="border-warning/10 overflow-hidden relative">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 text-left">
+                  <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                    <UsersIcon className="h-4 w-4 text-warning" /> Mentorship Pulse
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {mentees?.map((mentee) => (
+                      <div key={mentee.id} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-warning/20 hover:bg-warning/5 transition-all text-left">
+                        <div>
+                          <h5 className="text-[12px] font-bold">{mentee.name}</h5>
+                          <p className="text-[10px] text-muted-foreground uppercase">{mentee.program}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[12px] font-black font-display">{mentee.cgpa} CGPA</p>
+                          <p className={`text-[9px] uppercase font-bold tracking-wider ${mentee.status === 'at-risk' || mentee.status === 'failing' ? 'text-destructive' : 'text-success'}`}>
+                            {mentee.status.replace('-', ' ')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -246,6 +309,24 @@ export function FacultyDashboard() {
                   ))}
                 </CardContent>
               </Card>
+
+              <Card variant="glass" className="border-primary/10">
+                <CardHeader className="pb-2 text-left">
+                  <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                    <CalendarClock className="h-4 w-4 text-primary" /> Today's Schedule
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {schedule?.map((item) => (
+                    <div key={item.id} className="relative pl-4 border-l-2 border-primary/20 pb-4 last:pb-0 text-left group">
+                      <div className="absolute w-2 h-2 bg-primary rounded-full -left-[5px] top-1 group-hover:scale-150 transition-transform" />
+                      <p className="text-[11px] font-black tracking-tight leading-none mb-1 text-primary">{item.time}</p>
+                      <h5 className="text-[12px] font-bold leading-tight">{item.title}</h5>
+                      <p className="text-[10px] text-muted-foreground uppercase mt-1">{item.location} • {item.duration}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
@@ -255,7 +336,11 @@ export function FacultyDashboard() {
   );
 }
 
-function ResearchIntelligenceHub() {
+function ResearchIntelligenceHub({ data }: { data: any }) {
+  const citations = data?.citations || "1.4k";
+  const hIndex = data?.hIndex || 24;
+  const trendingText = data?.trendingMetric || "+15.2% ACCELERATING";
+
   return (
     <Card variant="glass" className="overflow-hidden relative bg-black/40 border-white/5 group rounded-[2.5rem]">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-success/5" />
@@ -277,7 +362,7 @@ function ResearchIntelligenceHub() {
             <div className="space-y-4">
               <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 <span>Funding Velocity</span>
-                <span className="text-primary">+15.2% ACCELERATING</span>
+                <span className="text-primary">{trendingText}</span>
               </div>
               <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                 <motion.div
@@ -292,11 +377,11 @@ function ResearchIntelligenceHub() {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
                 <p className="text-[9px] font-bold text-muted-foreground uppercase opacity-60 tracking-widest">Global Citations</p>
-                <p className="text-xl font-black font-display text-primary mt-1">1.4k</p>
+                <p className="text-xl font-black font-display text-primary mt-1">{citations}</p>
               </div>
               <div className="p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
                 <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60 tracking-widest">H-Index</p>
-                <p className="text-xl font-black font-display text-success mt-1">24</p>
+                <p className="text-xl font-black font-display text-success mt-1">{hIndex}</p>
               </div>
             </div>
           </div>

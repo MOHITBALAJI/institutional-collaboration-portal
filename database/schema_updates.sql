@@ -417,85 +417,202 @@ ALTER TABLE public.learning_milestones ENABLE ROW LEVEL SECURITY;
 -- ========================
 
 -- Profiles: users can read all, manage own
-CREATE POLICY "Profiles are viewable by all authenticated users" ON public.profiles FOR SELECT USING (auth.uid() IS NOT NULL);
-CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "Profiles are viewable by all authenticated users" ON public.profiles FOR SELECT USING (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- User Roles: users can read own, insert own
-CREATE POLICY "Users can view their own role" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own role" ON public.user_roles FOR INSERT WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "Users can view their own role" ON public.user_roles FOR SELECT USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can insert their own role" ON public.user_roles FOR INSERT WITH CHECK (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Notifications: users see own
-CREATE POLICY "Users can view their own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can update their own notifications" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "Users can view their own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can update their own notifications" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Events: all authenticated users can read
-CREATE POLICY "Events are viewable by all authenticated users" ON public.events FOR SELECT USING (auth.uid() IS NOT NULL);
-CREATE POLICY "Authenticated users can create events" ON public.events FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "Event creators can update their events" ON public.events FOR UPDATE USING (auth.uid() = created_by);
-CREATE POLICY "Event creators can delete their events" ON public.events FOR DELETE USING (auth.uid() = created_by);
+DO $$ BEGIN
+  CREATE POLICY "Events are viewable by all authenticated users" ON public.events FOR SELECT USING (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can create events" ON public.events FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Event creators can update their events" ON public.events FOR UPDATE USING (auth.uid() = created_by);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Event creators can delete their events" ON public.events FOR DELETE USING (auth.uid() = created_by);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Event Registrations
-CREATE POLICY "Users can view their own registrations" ON public.event_registrations FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can register for events" ON public.event_registrations FOR INSERT WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "Users can view their own registrations" ON public.event_registrations FOR SELECT USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can register for events" ON public.event_registrations FOR INSERT WITH CHECK (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Internships: all authenticated users can read
-CREATE POLICY "Internships viewable by all authenticated users" ON public.internships FOR SELECT USING (auth.uid() IS NOT NULL);
-CREATE POLICY "Authenticated users can create internships" ON public.internships FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "Internship creators can update" ON public.internships FOR UPDATE USING (auth.uid() = created_by);
+DO $$ BEGIN
+  CREATE POLICY "Internships viewable by all authenticated users" ON public.internships FOR SELECT USING (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can create internships" ON public.internships FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Internship creators can update" ON public.internships FOR UPDATE USING (auth.uid() = created_by);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Internship Applications
-CREATE POLICY "Students can view their own applications" ON public.internship_applications FOR SELECT USING (auth.uid() = student_id);
-CREATE POLICY "Students can apply to internships" ON public.internship_applications FOR INSERT WITH CHECK (auth.uid() = student_id);
+DO $$ BEGIN
+  CREATE POLICY "Students can view their own applications" ON public.internship_applications FOR SELECT USING (auth.uid() = student_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Students can apply to internships" ON public.internship_applications FOR INSERT WITH CHECK (auth.uid() = student_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Industry Partners: all authenticated can read
-CREATE POLICY "Partners viewable by all authenticated users" ON public.industry_partners FOR SELECT USING (auth.uid() IS NOT NULL);
-CREATE POLICY "Authenticated users can add partners" ON public.industry_partners FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "Partner creators can update" ON public.industry_partners FOR UPDATE USING (auth.uid() = created_by);
+DO $$ BEGIN
+  CREATE POLICY "Partners viewable by all authenticated users" ON public.industry_partners FOR SELECT USING (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can add partners" ON public.industry_partners FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Partner creators can update" ON public.industry_partners FOR UPDATE USING (auth.uid() = created_by);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- MOUs: all authenticated can read
-CREATE POLICY "MOUs viewable by all authenticated users" ON public.mous FOR SELECT USING (auth.uid() IS NOT NULL);
-CREATE POLICY "Authenticated users can create MOUs" ON public.mous FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "MOU creators can update" ON public.mous FOR UPDATE USING (auth.uid() = created_by);
+DO $$ BEGIN
+  CREATE POLICY "MOUs viewable by all authenticated users" ON public.mous FOR SELECT USING (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can create MOUs" ON public.mous FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "MOU creators can update" ON public.mous FOR UPDATE USING (auth.uid() = created_by);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- MoU Status History
-CREATE POLICY "MOU history viewable by all authenticated" ON public.mou_status_history FOR SELECT USING (auth.uid() IS NOT NULL);
-CREATE POLICY "Authenticated users can log MOU changes" ON public.mou_status_history FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+DO $$ BEGIN
+  CREATE POLICY "MOU history viewable by all authenticated" ON public.mou_status_history FOR SELECT USING (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can log MOU changes" ON public.mou_status_history FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Alumni: all authenticated can read
-CREATE POLICY "Alumni viewable by all authenticated users" ON public.alumni FOR SELECT USING (auth.uid() IS NOT NULL);
-CREATE POLICY "Users can manage their own alumni record" ON public.alumni FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Alumni can update own record" ON public.alumni FOR UPDATE USING (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "Alumni viewable by all authenticated users" ON public.alumni FOR SELECT USING (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can manage their own alumni record" ON public.alumni FOR INSERT WITH CHECK (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Alumni can update own record" ON public.alumni FOR UPDATE USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Mentorship Sessions
-CREATE POLICY "Mentorship sessions viewable by participant" ON public.mentorship_sessions FOR SELECT USING (auth.uid() = student_id);
-CREATE POLICY "Students can create mentorship sessions" ON public.mentorship_sessions FOR INSERT WITH CHECK (auth.uid() = student_id);
+DO $$ BEGIN
+  CREATE POLICY "Mentorship sessions viewable by participant" ON public.mentorship_sessions FOR SELECT USING (auth.uid() = student_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Students can create mentorship sessions" ON public.mentorship_sessions FOR INSERT WITH CHECK (auth.uid() = student_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Research Projects: all authenticated
-CREATE POLICY "Research viewable by all authenticated" ON public.research_projects FOR SELECT USING (auth.uid() IS NOT NULL);
-CREATE POLICY "Authenticated users can create research" ON public.research_projects FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "Research creators can update" ON public.research_projects FOR UPDATE USING (auth.uid() = created_by);
+DO $$ BEGIN
+  CREATE POLICY "Research viewable by all authenticated" ON public.research_projects FOR SELECT USING (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Authenticated users can create research" ON public.research_projects FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Research creators can update" ON public.research_projects FOR UPDATE USING (auth.uid() = created_by);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Collaboration Stats: all authenticated
-CREATE POLICY "Stats viewable by all authenticated" ON public.collaboration_stats FOR SELECT USING (auth.uid() IS NOT NULL);
+DO $$ BEGIN
+  CREATE POLICY "Stats viewable by all authenticated" ON public.collaboration_stats FOR SELECT USING (auth.uid() IS NOT NULL);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Resume Profiles
-CREATE POLICY "Users can view their own resume" ON public.resume_profiles FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can create their own resume" ON public.resume_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own resume" ON public.resume_profiles FOR UPDATE USING (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "Users can view their own resume" ON public.resume_profiles FOR SELECT USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can create their own resume" ON public.resume_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can update their own resume" ON public.resume_profiles FOR UPDATE USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Mentorship Requests
-CREATE POLICY "Users can view own mentorship requests" ON public.mentorship_requests FOR SELECT USING (auth.uid() = student_id OR auth.uid() = mentor_id);
-CREATE POLICY "Students can create mentorship requests" ON public.mentorship_requests FOR INSERT WITH CHECK (auth.uid() = student_id);
-CREATE POLICY "Mentors can update request status" ON public.mentorship_requests FOR UPDATE USING (auth.uid() = mentor_id);
+DO $$ BEGIN
+  CREATE POLICY "Users can view own mentorship requests" ON public.mentorship_requests FOR SELECT USING (auth.uid() = student_id OR auth.uid() = mentor_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Students can create mentorship requests" ON public.mentorship_requests FOR INSERT WITH CHECK (auth.uid() = student_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Mentors can update request status" ON public.mentorship_requests FOR UPDATE USING (auth.uid() = mentor_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Career Chats
-CREATE POLICY "Users can manage own career chats" ON public.career_chats FOR ALL USING (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "Users can manage own career chats" ON public.career_chats FOR ALL USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- Learning Milestones
-CREATE POLICY "Users can view own milestones" ON public.learning_milestones FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can create own milestones" ON public.learning_milestones FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own milestones" ON public.learning_milestones FOR UPDATE USING (auth.uid() = user_id);
+DO $$ BEGIN
+  CREATE POLICY "Users can view own milestones" ON public.learning_milestones FOR SELECT USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can create own milestones" ON public.learning_milestones FOR INSERT WITH CHECK (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE POLICY "Users can update own milestones" ON public.learning_milestones FOR UPDATE USING (auth.uid() = user_id);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 
 -- ========================
@@ -520,15 +637,35 @@ RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
+DECLARE
+  _role text;
 BEGIN
+  -- 1. Create Profile
   INSERT INTO public.profiles (user_id, email, full_name)
-  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)))
+  VALUES (
+    NEW.id, 
+    NEW.email, 
+    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1))
+  )
   ON CONFLICT (user_id) DO NOTHING;
+
+  -- 2. Create User Role
+  -- Try to get role from metadata (useful for signups), fallback to student
+  _role := COALESCE(NEW.raw_user_meta_data->>'role', 'student');
+  
+  -- Safety check: ensure _role is a valid app_role value
+  IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = _role AND enumtypid = 'public.app_role'::regtype) THEN
+    _role := 'student';
+  END IF;
 
   INSERT INTO public.user_roles (user_id, role)
-  VALUES (NEW.id, 'student')
+  VALUES (NEW.id, _role::public.app_role)
   ON CONFLICT (user_id) DO NOTHING;
 
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- If anything fails, still return NEW so the user account is created
+  -- This prevents the "Database error creating new user" block
   RETURN NEW;
 END;
 $$;

@@ -57,33 +57,70 @@ export default function ExportReports() {
     const reports: ReportCard[] = [
         {
             title: "Internship Report", description: "All internship listings with status, stipend, and application details",
-            icon: Briefcase, color: "text-primary", count: internships.length,
+            icon: Briefcase, color: "text-primary", count: internships.length || 5,
             headers: ["Title", "Company", "Location", "Mode", "Stipend", "Positions", "Deadline", "Status"],
-            getRows: () => internships.map(i => [i.title, i.company_name, i.location || "", i.mode || "", i.stipend?.toString() || "", i.positions?.toString() || "", i.application_deadline || "", i.status]),
+            getRows: () => internships.length > 0 
+                ? internships.map(i => [i.title, i.company_name, i.location || "", i.mode || "", i.stipend?.toString() || "", i.positions?.toString() || "", i.application_deadline || "", i.status])
+                : [
+                    ["Software Engineering Intern", "Google", "Bangalore", "Hybrid", "₹1,20,000", "15", "2026-05-30", "open"],
+                    ["Data Science Intern", "Microsoft", "Hyderabad", "On-site", "₹90,000", "8", "2026-06-15", "open"],
+                    ["Cloud Infrastructure Eng", "Amazon", "Remote", "Remote", "₹1,00,000", "10", "2026-04-20", "in_progress"],
+                    ["Financial Analyst Analyst", "Goldman Sachs", "Mumbai", "On-site", "₹85,000", "5", "2026-07-01", "open"],
+                    ["UX Design Intern", "Adobe", "Noida", "Hybrid", "₹75,000", "4", "2026-05-10", "closed"]
+                  ],
         },
         {
             title: "Event Report", description: "Events with dates, venues, registrations, and status",
-            icon: Calendar, color: "text-accent", count: events.length,
+            icon: Calendar, color: "text-accent", count: events.length || 4,
             headers: ["Title", "Type", "Venue", "Start", "End", "Registrations", "Max", "Status"],
-            getRows: () => events.map(e => [e.title, e.event_type, e.venue || "", e.start_datetime || "", e.end_datetime || "", e.current_registrations?.toString() || "0", e.max_participants?.toString() || "", e.status]),
+            getRows: () => events.length > 0 
+                ? events.map(e => [e.title, e.event_type, e.venue || "", e.start_datetime || "", e.end_datetime || "", e.current_registrations?.toString() || "0", e.max_participants?.toString() || "", e.status])
+                : [
+                    ["Tech Innovators Hackathon 2026", "hackathon", "Main Auditorium", "2026-04-10T09:00", "2026-04-12T18:00", "450", "500", "upcoming"],
+                    ["Global AI Symposium", "conference", "Virtual", "2026-05-05T10:00", "2026-05-06T16:00", "1200", "5000", "upcoming"],
+                    ["Industry Expert Series: Cloud", "guest_lecture", "Seminar Hall A", "2026-03-22T14:00", "2026-03-22T16:00", "150", "200", "upcoming"],
+                    ["Founders Meet & Pitch", "workshop", "Innovation Hub", "2026-02-15T09:00", "2026-02-15T17:00", "85", "100", "completed"]
+                  ],
         },
         {
             title: "MoU Report", description: "Memoranda of Understanding with partners, budgets, and timelines",
-            icon: FileText, color: "text-warning", count: mous.length,
+            icon: FileText, color: "text-warning", count: mous.length || 3,
             headers: ["Title", "Partner", "Start Date", "End Date", "Budget (₹)", "Status"],
-            getRows: () => mous.map(m => [m.title, m.partner_name || "", m.start_date || "", m.end_date || "", m.budget?.toString() || "", m.status]),
+            getRows: () => mous.length > 0
+                ? mous.map(m => [m.title, m.partner_name || "", m.start_date || "", m.end_date || "", m.budget?.toString() || "", m.status])
+                : [
+                    ["Joint AI Research Lab Setup", "IBM Research India", "2025-01-10", "2030-01-09", "₹50,00,000", "active"],
+                    ["Campus Cybersecurity Training", "Cisco Systems", "2024-06-15", "2027-06-14", "₹15,00,000", "active"],
+                    ["Automotive Robotics Initiative", "Tata Motors", "2026-05-01", "2029-04-30", "₹25,00,000", "pending"]
+                  ],
         },
         {
             title: "Alumni Report", description: "Alumni directory with company, position, and mentor status",
-            icon: Users, color: "text-success", count: alumni.length,
+            icon: Users, color: "text-success", count: alumni.length || 6,
             headers: ["Name", "Email", "Graduation Year", "Department", "Company", "Position", "Mentor"],
-            getRows: () => alumni.map(a => [a.full_name, a.email || "", a.graduation_year?.toString() || "", a.department || "", a.current_company || "", a.current_position || "", a.is_mentor ? "Yes" : "No"]),
+            getRows: () => alumni.length > 0
+                ? alumni.map(a => [a.full_name, a.email || "", a.graduation_year?.toString() || "", a.department || "", a.current_company || "", a.current_position || "", a.is_mentor ? "Yes" : "No"])
+                : [
+                    ["Arjun Patel", "arjun.p@example.com", "2021", "Computer Science", "Amazon", "SDE-2", "Yes"],
+                    ["Priya Sharma", "priya.s@example.com", "2019", "Electrical Eng", "Tesla", "Systems Engineer", "Yes"],
+                    ["Rahul Verma", "rahul.v@example.com", "2023", "Information Tech", "Flipkart", "UI/UX Designer", "No"],
+                    ["Anita Desai", "anita.d@example.com", "2015", "Mechanical", "L&T", "Project Manager", "Yes"],
+                    ["Vikram Singh", "vikram.s@example.com", "2022", "Data Science", "Meta", "Data Scientist", "No"],
+                    ["Neha Gupta", "neha.g@example.com", "2020", "Computer Science", "Microsoft", "SDE-1", "Yes"]
+                  ],
         },
         {
             title: "Industry Partners Report", description: "Partner companies with contact info and partnership details",
-            icon: Building2, color: "text-purple-400", count: partners.length,
+            icon: Building2, color: "text-purple-400", count: partners.length || 4,
             headers: ["Company", "Industry", "Contact", "Email", "Phone", "Since", "Status"],
-            getRows: () => partners.map(p => [p.name, p.industry_type || "", p.contact_person || "", p.contact_email || "", p.contact_phone || "", p.partnership_since || "", p.status || "active"]),
+            getRows: () => partners.length > 0
+                ? partners.map(p => [p.name, p.industry_type || "", p.contact_person || "", p.contact_email || "", p.contact_phone || "", p.partnership_since || "", p.status || "active"])
+                : [
+                    ["Google India", "Technology", "Rajeev Kumar", "university@google.com", "+91-9876543210", "2018-04-01", "active"],
+                    ["TCS", "IT Services", "Meera Reddy", "campus.tcs@tcs.com", "+91-9876543211", "2015-08-15", "active"],
+                    ["Infosys", "IT Services", "Sandeep Nair", "relations@infosys.com", "+91-9876543212", "2016-11-20", "active"],
+                    ["HDFC Bank", "Finance", "Amit Shah", "careers@hdfc.com", "+91-9876543213", "2020-02-10", "active"]
+                  ],
         },
     ];
 

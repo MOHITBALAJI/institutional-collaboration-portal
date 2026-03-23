@@ -54,7 +54,6 @@ import {
   Cell,
 } from "recharts";
 import { cn } from "@/lib/utils";
-import { NeuralCanvas } from "@/components/collaboration/NeuralCanvas";
 
 const talentClusters = [
   { id: 1, x: 20, y: 30, size: 40, label: "AI/ML Experts", count: 124, color: "hsl(262, 83%, 58%)" },
@@ -342,15 +341,7 @@ export default function IndustryPartners() {
           </div>
         </div>
 
-        {/* Collaborative War Room Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 px-2">
-            <Zap className="h-4 w-4 text-primary animate-pulse" />
-            <h2 className="text-xl font-black uppercase tracking-widest text-white">Neural War Room</h2>
-            <Badge variant="outline" className="ml-auto border-primary/20 text-primary uppercase text-[8px] font-black">Multi-Entity Sync Active</Badge>
-          </div>
-          <NeuralCanvas />
-        </div>
+
 
         {/* Directory System */}
         <Card variant="glass" className="border-white/5 overflow-hidden">
