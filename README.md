@@ -1,4 +1,4 @@
-# Academia Connect Pro 🚀
+# INSTITUTIONAL COLLABORATION PORTAL 🚀
 
 **Institutional Collaboration Portal for Academia and Industry**
 
